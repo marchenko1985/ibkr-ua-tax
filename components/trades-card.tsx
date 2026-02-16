@@ -194,7 +194,7 @@ function TradesTable({ trades }: { trades: ReturnType<typeof extract> }) {
             <TooltipTrigger>Realized</TooltipTrigger>
             <TooltipContent>
               <p>Реалізований прибуток/збиток в гривнях</p>
-              <p className="text-muted-foreground text-xs mt-1">Close UAH − Open UAH + Commission × CloseRate</p>
+              <p className="text-muted-foreground text-xs mt-1">Close UAH − Open UAH</p>
             </TooltipContent>
           </Tooltip>
         </TableHead>
@@ -280,9 +280,8 @@ function TradesTable({ trades }: { trades: ReturnType<typeof extract> }) {
             <TooltipTrigger className={cn(trade.realized_uah > 0 && "text-green-500", trade.realized_uah < 0 && "text-red-500")}>{trade.realized_uah.toFixed(2)}</TooltipTrigger>
             <TooltipContent>
               <p className="font-semibold">Реалізований {trade.realized_uah >= 0 ? "прибуток" : "збиток"} в гривнях</p>
-              <p className="text-muted-foreground text-xs mt-1">Close UAH − Open UAH + Commission × CloseRate</p>
-              <p>{trade.close_uah.toFixed(2)} − {trade.open_uah.toFixed(2)} + ({trade.close_commfee} × {trade.close_rate})</p>
-              <p>= {trade.close_uah.toFixed(2)} − {trade.open_uah.toFixed(2)} + ({(trade.close_commfee * trade.close_rate).toFixed(2)})</p>
+              <p className="text-muted-foreground text-xs mt-1">Close UAH − Open UAH</p>
+              <p>{trade.close_uah.toFixed(2)} − {trade.open_uah.toFixed(2)}</p>
               <p>= {trade.realized_uah.toFixed(2)}</p>
               {trade.is_short && trade.open_realized > 0 && trade.realized_uah < 0 && (
                 <p className="text-yellow-500 text-xs mt-1">⚠️ Прибуткова угода в USD, але збиткова в UAH через зміну курсу</p>

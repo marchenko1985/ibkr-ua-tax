@@ -38,7 +38,9 @@ describe("long", () => {
       expect(result.open_uah).toBe(100 * 40); // 4000
       expect(result.close_uah).toBe((100 + 50) * 42); // 6300
       // 6300 - 4000 + (-42) = 2258
-      expect(result.realized_uah).toBe(2258);
+      // expect(result.realized_uah).toBe(2258);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(6300 - 4000); // 2300
     });
 
     it("losing trade", () => {
@@ -54,7 +56,9 @@ describe("long", () => {
       expect(result.open_uah).toBe(100 * 40); // 4000
       expect(result.close_uah).toBe((100 + -50) * 42); // 2100
       // 2100 - 4000 + (-42) = -1942
-      expect(result.realized_uah).toBe(-1942);
+      // expect(result.realized_uah).toBe(-1942);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(2100 - 4000); // -1900
     });
   });
 
@@ -71,7 +75,9 @@ describe("long", () => {
 
       expect(result.open_uah).toBe(4000);
       expect(result.close_uah).toBe(6300);
-      expect(result.realized_uah).toBe(2258);
+      // expect(result.realized_uah).toBe(2258);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(6300 - 4000); // 2300
     });
 
     it("losing trade", () => {
@@ -86,7 +92,9 @@ describe("long", () => {
 
       expect(result.open_uah).toBe(4000);
       expect(result.close_uah).toBe(2100);
-      expect(result.realized_uah).toBe(-1942);
+      // expect(result.realized_uah).toBe(-1942);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(2100 - 4000); // -1900
     });
 
     it("expired worthless (total loss)", () => {
@@ -135,7 +143,9 @@ describe("short", () => {
       expect(result.open_uah).toBe(90 * 42); // 3780 (buyback cost)
       expect(result.close_uah).toBe(100 * 40); // 4000 (initial credit)
       // 4000 - 3780 + (-42) = 178
-      expect(result.realized_uah).toBe(178);
+      // expect(result.realized_uah).toBe(178);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(4000 - 3780); // 220
     });
 
     it("losing trade", () => {
@@ -152,7 +162,9 @@ describe("short", () => {
       expect(result.open_uah).toBe(110 * 42); // 4620 (buyback cost)
       expect(result.close_uah).toBe(100 * 40); // 4000 (initial credit)
       // 4000 - 4620 + (-42) = -662
-      expect(result.realized_uah).toBe(-662);
+      // expect(result.realized_uah).toBe(-662);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(4000 - 4620); // -620
     });
   });
 
@@ -171,7 +183,9 @@ describe("short", () => {
       expect(result.open_uah).toBe(50 * 42); // 2100 (buyback cost)
       expect(result.close_uah).toBe(100 * 40); // 4000 (initial credit)
       // 4000 - 2100 + (-42) = 1858
-      expect(result.realized_uah).toBe(1858);
+      // expect(result.realized_uah).toBe(1858);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(4000 - 2100); // 1900
     });
 
     it("losing trade", () => {
@@ -188,7 +202,9 @@ describe("short", () => {
       expect(result.open_uah).toBe(110 * 42); // 4620
       expect(result.close_uah).toBe(100 * 40); // 4000
       // 4000 - 4620 + (-42) = -662
-      expect(result.realized_uah).toBe(-662);
+      // expect(result.realized_uah).toBe(-662);
+      // NOTE: we do not need touch commissions
+      expect(result.realized_uah).toBe(4000 - 4620); // -620
     });
 
     it("expired worthless (full win, is_expired flag)", () => {
@@ -248,7 +264,9 @@ describe("same rate (no FX effect)", () => {
     expect(result.open_uah).toBe(4000);
     expect(result.close_uah).toBe(6000);
     // 6000 - 4000 + (-40) = 1960
-    expect(result.realized_uah).toBe(1960);
+    // expect(result.realized_uah).toBe(1960);
+    // NOTE: we do not need touch commissions
+    expect(result.realized_uah).toBe(6000 - 4000); // 2000
   });
 
   it("short winning", () => {
@@ -264,7 +282,9 @@ describe("same rate (no FX effect)", () => {
     expect(result.open_uah).toBe(50 * 40); // 2000
     expect(result.close_uah).toBe(100 * 40); // 4000
     // 4000 - 2000 + (-40) = 1960
-    expect(result.realized_uah).toBe(1960);
+    // expect(result.realized_uah).toBe(1960);
+    // NOTE: we do not need touch commissions
+    expect(result.realized_uah).toBe(4000 - 2000); // 2000
   });
 });
 
@@ -284,7 +304,9 @@ describe("real IB examples", () => {
     expect(result.open_uah).toBeCloseTo(495.4 * 40, 2); // 19816.00
     expect(result.close_uah).toBeCloseTo((495.4 + 277.58) * 42, 2); // 32465.16
     // 32465.16 - 19816.00 + (-1.02 * 42) = 32465.16 - 19816 - 42.84 = 12606.32
-    expect(result.realized_uah).toBeCloseTo(12606.32, 2);
+    // expect(result.realized_uah).toBeCloseTo(12606.32, 2);
+    // NOTE: we do not need touch commissions
+    expect(result.realized_uah).toBeCloseTo(32465.16 - 19816, 2); // 12649.16
   });
 
   it("NVDA short option win (bought back)", () => {
@@ -300,7 +322,9 @@ describe("real IB examples", () => {
     expect(result.open_uah).toBeCloseTo(2.86 * 42, 2); // 120.12
     expect(result.close_uah).toBeCloseTo(39.95 * 40, 2); // 1598.00
     // 1598.00 - 120.12 + (-0.86 * 42) = 1598 - 120.12 - 36.12 = 1441.76
-    expect(result.realized_uah).toBeCloseTo(1441.76, 2);
+    // expect(result.realized_uah).toBeCloseTo(1441.76, 2);
+    // NOTE: we do not need touch commissions
+    expect(result.realized_uah).toBeCloseTo(1598 - 120.12, 2); // 1477.88
   });
 
   it("NVDA short option expired (realized = |basis|)", () => {
@@ -333,7 +357,9 @@ describe("real IB examples", () => {
     expect(result.close_uah).toBeCloseTo(1149.19 * 40, 2); // 45967.60
     // 45967.60 - 47848.08 + (-0.34 * 42) = -1894.76
     // USD win but UAH loss due to rising exchange rate!
-    expect(result.realized_uah).toBeCloseTo(-1894.76, 2);
+    // expect(result.realized_uah).toBeCloseTo(-1894.76, 2);
+    // NOTE: we do not need touch commissions
+    expect(result.realized_uah).toBeCloseTo(45967.6 - 47848.08, 2); // -1880.48
   });
 
   it("SMCI short option expired worthless", () => {
@@ -363,7 +389,9 @@ describe("real IB examples", () => {
     expect(result.open_uah).toBeCloseTo(74.66 * 40, 2); // 2986.40
     expect(result.close_uah).toBeCloseTo((74.66 + -73.88) * 42, 2); // 32.76
     // 32.76 - 2986.40 + (-1.22 * 42) = 32.76 - 2986.4 - 51.24 = -3004.88
-    expect(result.realized_uah).toBeCloseTo(-3004.88, 2);
+    // expect(result.realized_uah).toBeCloseTo(-3004.88, 2);
+    // NOTE: we do not need touch commissions
+    expect(result.realized_uah).toBeCloseTo(32.76 - 2986.4, 2); // -2953.64
   });
 
   it("APP short option expired worthless", () => {

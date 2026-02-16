@@ -47,7 +47,7 @@ export function extract(document: Document) {
       close_quantity: Number(close?.querySelector("td:nth-child(4)")?.textContent?.replaceAll(",", "")),
       close_tprice: Number(close?.querySelector("td:nth-child(5)")?.textContent?.replaceAll(",", "")),
       close_proceeds: Number(close?.querySelector("td:nth-child(6)")?.textContent?.replaceAll(",", "")),
-      close_commfee: Number(close?.querySelector("td:nth-child(7)")?.textContent?.replaceAll(",", "")) / count,
+      close_commfee: Number(close?.querySelector("td:nth-child(7)")?.textContent?.replaceAll(",", "")), // / count, // NOTE: previously we were thinking that we need apply commissions, and because commission is applied to order, we need to distribute it accross closed lots, but later we discovered we do not need to touch commissions at all
       close_basis: Number(close?.querySelector("td:nth-child(8)")?.textContent?.replaceAll(",", "")),
       close_realized: Number(close?.querySelector("td:nth-child(9)")?.textContent?.replaceAll(",", "")),
       close_code: close?.querySelector("td:nth-child(10)")?.textContent ?? "",

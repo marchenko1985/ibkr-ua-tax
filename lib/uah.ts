@@ -25,7 +25,8 @@ export function uah({ open_rate, close_rate, basis, realized, commission, is_exp
 
   const commission_uah = commission * close_rate;
 
-  const realized_uah = close_uah - open_uah + commission_uah;
+  const realized_uah = close_uah - open_uah;
+  // + commission_uah; // note: we do not need to touch commissions at all, because they are already included in realized P&L, so we just ignore them here
 
   return {
     open_uah,
