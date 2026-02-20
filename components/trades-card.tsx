@@ -222,7 +222,7 @@ function TradesTable({ trades }: { trades: ReturnType<typeof extract> }) {
         </TableCell>
         <TableCell>
           <Tooltip>
-            <TooltipTrigger>{trade.close_rate?.toFixed(2)}</TooltipTrigger>
+            <TooltipTrigger>{trade.close_rate.toFixed(2)}</TooltipTrigger>
             <TooltipContent>
               <p>Курс долара на дату закриття позиції</p>
               <p>Дата: {trade.close_date}</p>

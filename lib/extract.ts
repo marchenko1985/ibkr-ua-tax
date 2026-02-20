@@ -15,7 +15,7 @@ export function extract(document: Document) {
               while (prev?.querySelector("td")?.textContent === "Closed Lot:") {
                 prev = prev.previousElementSibling;
               }
-              return prev;
+              return prev ?? td.closest("tbody")?.previousElementSibling?.querySelector("tr");
             })(td.closest("tr")?.previousElementSibling),
     }))
     .map(({ open, close }) => ({
@@ -78,7 +78,7 @@ export function extract(document: Document) {
       is_short: item.open_quantity < 0,
       is_option: isOption(item.symbol),
     }))
-    .sort((a, b) => a.open_date.localeCompare(b.open_date));
+    .sort((a, b) => a.close_date.localeCompare(b.close_date));
 }
 
 /**
