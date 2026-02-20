@@ -93,13 +93,14 @@ function TradesTable({ trades }: { trades: ReturnType<typeof extract> }) {
     const realized_uah = trades.reduce((acc, trade) => acc + trade.realized_uah, 0);
     const personal_income_tax = realized_uah > 0 ? realized_uah * 0.18 : 0;
     const military_tax = realized_uah > 0 ? realized_uah * 0.05 : 0;
-
+    const realized_usd = trades.reduce((acc, trade) => acc + trade.open_realized, 0);
     return {
       open_uah,
       close_uah,
       realized_uah,
       personal_income_tax,
       military_tax,
+      realized_usd,
     }
   }, [trades])
 
@@ -293,7 +294,9 @@ function TradesTable({ trades }: { trades: ReturnType<typeof extract> }) {
     </TableBody>
     <TableFooter>
       <TableRow>
-        <TableCell colSpan={9} className="text-right font-bold">Загалом:</TableCell>
+        <TableCell colSpan={4} className="text-right font-bold">Загалом:</TableCell>
+        <TableCell className={cn(total.realized_usd < 0 && "text-red-500", total.realized_usd > 0 && "text-green-500")}>{total.realized_usd.toFixed(2)}</TableCell>
+        <TableCell colSpan={4} />
         <TableCell>
           <Tooltip>
             <TooltipTrigger>{total.open_uah.toFixed(2)}</TooltipTrigger>
