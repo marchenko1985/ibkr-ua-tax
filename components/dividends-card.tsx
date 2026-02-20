@@ -51,6 +51,17 @@ export function DividendsCard({ document }: { document: Document | null | undefi
     return <ErrorCard error={error} />
   }
 
+  if (dividends.length === 0) {
+    return <Card className="print:hidden">
+      <CardHeader>
+        <CardTitle>Дивіденди</CardTitle>
+      </CardHeader>
+      <CardContent>
+        Звіт не містить інформації про дивіденди за вибраний період.
+      </CardContent>
+    </Card>
+  }
+
   return <Card className="print:hidden">
     <CardHeader>
       <CardTitle>Дивіденди</CardTitle>

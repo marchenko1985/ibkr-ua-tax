@@ -50,7 +50,32 @@ export function TradesCard({ document }: { document: Document | null | undefined
     return <ErrorCard error={error} />
   }
 
+  if (trades.length === 0) {
+    return <Card className="print:hidden">
+      <CardHeader>
+        <CardTitle>Угоди</CardTitle>
+      </CardHeader>
+      <CardContent>
+        Звіт не містить інформації про закриті угоди за вибраний період.
+      </CardContent>
+    </Card>
+  }
+
+  const hasTradesWithStrangeCommissions = trades.some(trade => trade.close_commfee > 10);
+
+
   return <>
+    {!trades.some(trade => trade.close_commfee > 10) && <Card>
+      <CardHeader>
+        <CardTitle>Увага</CardTitle>
+        <CardDescription>Схоже, що деякі угоди мають незвично високі комісії.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>Перевірте що в налаштуваннях звіту <b>Profit and Loss</b> виставлено в <b>Realized P/L Only</b>.</p>
+        <p>Це налаштування міняє порядок стовпчиків. Із-за чого, замість комісії може враховуватися прибуток.</p>
+        <p>Додаток вичитує комісію з сьомого стовпчика оригінального html - відкрийте його в браузері та перевірте щоб там був стовпчик commfee а не proceeds.</p>
+      </CardContent>
+    </Card>}
     <Card className="print:hidden">
       <CardHeader>
         <CardTitle>Угоди</CardTitle>
