@@ -138,7 +138,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
   return <Table className="text-center">
     <TableHeader>
       <TableRow>
-        <TableHead className="text-center" colSpan={7}>Interactive Brokers Statement</TableHead>
+        <TableHead className="text-center" colSpan={6}>Interactive Brokers Statement</TableHead>
         <TableHead className="text-center border-l" colSpan={3}>USD</TableHead>
         <TableHead className="text-center border-l" colSpan={2}>Exchange Rates</TableHead>
         <TableHead className="text-center border-l" colSpan={3}>UAH</TableHead>
@@ -436,7 +436,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
       <TableRow>
         <TableCell colSpan={4} className="text-right font-bold">Загалом:</TableCell>
         <TableCell className={cn(total.realized_usd < 0 && "text-red-500", total.realized_usd > 0 && "text-green-500")}>{total.realized_usd.toFixed(2)}</TableCell>
-        <TableCell colSpan={7} />
+        <TableCell colSpan={6} />
         <TableCell>
           <Tooltip>
             <TooltipTrigger>{total.open_uah.toFixed(2)}</TooltipTrigger>
@@ -457,15 +457,15 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell colSpan={14} className="text-right font-bold">Податок з доходу ПДФО (18%):</TableCell>
+        <TableCell colSpan={13} className="text-right font-bold">Податок з доходу ПДФО (18%):</TableCell>
         <TableCell>{total.personal_income_tax.toFixed(2)}</TableCell>
       </TableRow>
       <TableRow>
-        <TableCell colSpan={14} className="text-right font-bold">Військовий збір (5%):</TableCell>
+        <TableCell colSpan={13} className="text-right font-bold">Військовий збір (5%):</TableCell>
         <TableCell>{total.military_tax.toFixed(2)}</TableCell>
       </TableRow>
       <TableRow>
-        <TableCell colSpan={14} className="text-right font-bold">Усього до сплати податків:</TableCell>
+        <TableCell colSpan={13} className="text-right font-bold">Усього до сплати податків:</TableCell>
         <TableCell>{(total.personal_income_tax + total.military_tax).toFixed(2)}</TableCell>
       </TableRow>
     </TableFooter>
