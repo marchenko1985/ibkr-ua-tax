@@ -1,7 +1,27 @@
 /**
- * Parses transactions from Interactive Brokers statements report
+ * Parses transactions from Interactive Brokers statements report.
+ *
+ * Reconstructs closed positions from "Closed Lot:" detail rows in the IBKR HTML statement.
+ * Each closed lot becomes one row — the parent (close) row provides the closing context
+ * (date, symbol, proceeds, code), while the detail (open) row provides the opening context
+ * (date, basis, realized P&L).
+ *
+ * IBKR trade codes (semicolon-delimited in the Code column):
+ *   C  — Closing trade: the position was closed normally
+ *   O  — Opening trade: a new position was opened
+ *   A  — Assignment: an option was converted into stock by the counterparty exercising.
+ *         For OPTION rows: this is NOT a taxable event — the option transforms into stock,
+ *         and its basis is embedded into the resulting stock position's cost basis.
+ *         For STOCK rows: the stock row IS a taxable event — it represents the actual
+ *         trade created by the assignment (e.g., forced sale or purchase at strike price).
+ *   Ex — Exercise: the option holder exercised their own option, converting it to stock.
+ *         Same treatment as Assignment — not a taxable event for the option itself,
+ *         the stock trade that results from it IS the taxable event.
+ *   Ep — Expired Position: the option expired worthless. This IS a taxable event —
+ *         the full premium is either a realized loss (long) or realized profit (short).
+ *
  * @param document parsed HTML document
- * @returns array of transaction objects
+ * @returns array of transaction objects with derived flags for filtering and calculation
  */
 export function extract(document: Document) {
   return Array.from(document.querySelectorAll("tbody.row-detail td:nth-child(1)"))
@@ -57,9 +77,17 @@ export function extract(document: Document) {
       close_date: close?.querySelector("td:nth-child(2)")?.textContent?.substring(0, 10) ?? "",
       close_year: Number(close?.querySelector("td:nth-child(2)")?.textContent?.substring(0, 4)) ?? "",
 
-      // ---
+      // --- Parsed code arrays (semicolon-delimited IBKR trade codes)
 
-      is_expired: open?.querySelector("td:nth-child(10)")?.textContent?.includes("Ep") || close?.querySelector("td:nth-child(10)")?.textContent?.includes("Ep"),
+      open_codes: parseCodes(open?.querySelector("td:nth-child(10)")?.textContent ?? ""),
+      close_codes: parseCodes(close?.querySelector("td:nth-child(10)")?.textContent ?? ""),
+
+      // --- Expiration flag: true if either open or close code contains "Ep" (Expired Position)
+      // Used by uah.ts to handle the edge case where IBKR reports realized=0 for expired short options.
+      // In practice IBKR reports realized=|basis| for expired shorts, so the regular short branch handles it,
+      // but this flag acts as a safety net. See detailed explanation in uah.ts.
+
+      is_expired: (open?.querySelector("td:nth-child(10)")?.textContent ?? "").includes("Ep") || (close?.querySelector("td:nth-child(10)")?.textContent ?? "").includes("Ep"),
 
       // ---
 
@@ -71,12 +99,35 @@ export function extract(document: Document) {
       open_uah: 0,
       close_uah: 0,
       realized_uah: 0,
+
+      // --- USD intermediate values (computed during enrichment, not extraction)
+
+      open_usd: 0,
+      close_usd: 0,
+      realized_usd: 0,
     }))
     .map((item) => ({
       ...item,
       is_long: item.open_quantity > 0,
       is_short: item.open_quantity < 0,
       is_option: isOption(item.symbol),
+
+      // --- Assignment/Exercise flags
+      // These flags are used to exclude option rows from Ф1 tax form output.
+      // When an option is assigned (A) or exercised (Ex), it is converted into a stock position.
+      // This is NOT a taxable event for the option — the option's economics (premium, fees)
+      // are embedded into the resulting stock's cost basis. The taxable event occurs later
+      // when that stock position is closed.
+      //
+      // IMPORTANT: only option rows are flagged. Stock rows may also have "A" in their code
+      // (e.g., "A;C;O" for stock delivered via assignment), but those stock rows ARE taxable
+      // events and must NOT be excluded. The is_option check ensures this.
+      //
+      // Note: "Ex" (exercise) is supported preemptively but has not been observed in real
+      // IBKR statements yet. It follows the same logic as "A" — option converts to stock.
+
+      is_assignment: isOption(item.symbol) && item.close_codes.includes("A"),
+      is_exercise: isOption(item.symbol) && item.close_codes.includes("Ex"),
     }))
     .sort((a, b) => a.close_date.localeCompare(b.close_date));
 }
@@ -93,6 +144,19 @@ export function extract(document: Document) {
  */
 function isOption(symbol: string) {
   return /\s+\d{2}[A-Z]{3}\d{2}\s+\d+(\.\d+)?\s+[CP]$/.test(symbol);
+}
+
+/**
+ * Parses IBKR semicolon-delimited trade code string into an array of trimmed code tokens.
+ * Example: "A;C;O" → ["A", "C", "O"]
+ * Example: "C;Ep" → ["C", "Ep"]
+ * Example: "C" → ["C"]
+ */
+function parseCodes(code: string): string[] {
+  return code
+    .split(";")
+    .map((x) => x.trim())
+    .filter((x) => !!x);
 }
 
 /*
