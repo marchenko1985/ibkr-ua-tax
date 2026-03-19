@@ -82,13 +82,6 @@ export function extract(document: Document) {
       open_codes: parseCodes(open?.querySelector("td:nth-child(10)")?.textContent ?? ""),
       close_codes: parseCodes(close?.querySelector("td:nth-child(10)")?.textContent ?? ""),
 
-      // --- Expiration flag: true if either open or close code contains "Ep" (Expired Position)
-      // Used by uah.ts to handle the edge case where IBKR reports realized=0 for expired short options.
-      // In practice IBKR reports realized=|basis| for expired shorts, so the regular short branch handles it,
-      // but this flag acts as a safety net. See detailed explanation in uah.ts.
-
-      is_expired: (open?.querySelector("td:nth-child(10)")?.textContent ?? "").includes("Ep") || (close?.querySelector("td:nth-child(10)")?.textContent ?? "").includes("Ep"),
-
       // ---
 
       open_rate: 0,

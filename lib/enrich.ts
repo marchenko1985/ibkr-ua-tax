@@ -43,7 +43,6 @@ export function enrich(trades: ReturnType<typeof extract>) {
     const { open_usd, close_usd, realized_usd } = computeUsd({
       basis: item.open_basis,
       realized: item.open_realized,
-      is_expired: item.is_expired,
     });
 
     const { open_uah, close_uah, realized_uah } = uah({
@@ -52,7 +51,6 @@ export function enrich(trades: ReturnType<typeof extract>) {
       basis: item.open_basis,
       realized: item.open_realized,
       commission: item.close_commfee,
-      is_expired: item.is_expired,
     });
 
     return {
@@ -80,22 +78,18 @@ export function enrich(trades: ReturnType<typeof extract>) {
  *   This works because IBKR's realized P&L already accounts for fees:
  *     realized = proceeds - basis - fees → basis + realized = proceeds - fees
  *
- * For SHORT positions (basis < 0, not expired):
+ * For SHORT positions (basis < 0):
  *   close_usd = |basis|                — initial credit received when selling/writing
  *   open_usd  = |basis| - realized     — cost to buy back (close) the position
  *   Note the "reversed" naming: for shorts, the income event (selling) happens at open,
  *   and the expense event (buyback) happens at close. We name them open/close to align
  *   with how they map to Ф1: open_usd becomes "expenses", close_usd becomes "income".
  *
- * For SHORT EXPIRED positions (basis < 0, is_expired):
- *   close_usd = |basis|                — full premium retained as income
- *   open_usd  = 0                      — no buyback was needed (option expired worthless)
- *   This is a safety net for the case where IBKR reports realized=0 for expired shorts.
- *   In practice IBKR reports realized=|basis|, making buyback=0 in the regular branch too.
+ *   For expired short options, IBKR reports realized = |basis|, so buyback = 0 naturally.
  *
  * realized_usd = close_usd - open_usd  — always equals IBKR's reported realized P&L
  */
-function computeUsd({ basis, realized, is_expired }: { basis: number; realized: number; is_expired: boolean | undefined }) {
+function computeUsd({ basis, realized }: { basis: number; realized: number }) {
   const is_long = basis > 0;
 
   let open_usd = 0;
@@ -105,13 +99,8 @@ function computeUsd({ basis, realized, is_expired }: { basis: number; realized: 
     open_usd = basis;
     close_usd = basis + realized;
   } else {
-    if (!is_expired) {
-      close_usd = Math.abs(basis);
-      open_usd = Math.abs(basis) - realized;
-    } else {
-      close_usd = Math.abs(basis);
-      open_usd = 0;
-    }
+    close_usd = Math.abs(basis);
+    open_usd = Math.abs(basis) - realized;
   }
 
   return {

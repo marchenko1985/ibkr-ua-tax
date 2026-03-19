@@ -47,7 +47,6 @@ describe("extract amd.htm", () => {
       expect(trade.is_long).toBe(false);
       expect(trade.is_assignment).toBe(true);
       expect(trade.is_exercise).toBe(false);
-      expect(trade.is_expired).toBe(false);
     });
 
     it("codes parsed", () => {
@@ -95,16 +94,11 @@ describe("extract amd.htm", () => {
       expect(trade.is_option).toBe(true);
       expect(trade.is_long).toBe(true);
       expect(trade.is_assignment).toBe(false);
-      expect(trade.is_expired).toBe(false);
     });
 
     it("losing trade", () => {
       expect(trade.open_realized).toBe(-696.44);
     });
-  });
-
-  it("no expired options in amd.htm", () => {
-    expect(trades.filter((t) => t.is_expired)).toHaveLength(0);
   });
 
   it("only 1 assigned option", () => {
@@ -200,7 +194,6 @@ describe("extract qqq.htm", () => {
       expect(trade.is_short).toBe(true);
       expect(trade.is_assignment).toBe(true);
       expect(trade.is_exercise).toBe(false);
-      expect(trade.is_expired).toBe(false);
     });
 
     it("codes", () => {
@@ -212,35 +205,28 @@ describe("extract qqq.htm", () => {
     });
   });
 
-  describe("expired options (C;Ep)", () => {
-    let expired: ReturnType<typeof extract>;
-
-    beforeAll(() => {
-      expired = trades.filter((t) => t.is_expired);
-    });
-
-    it("3 expired options", () => {
-      expect(expired).toHaveLength(3);
-    });
-
+  describe("expired options (C;Ep code)", () => {
     it("QQQ 02MAR26 612 C — long expired (loss)", () => {
-      const t = expired.find((t) => t.symbol === "QQQ 02MAR26 612 C")!;
+      const t = trades.find((t) => t.symbol === "QQQ 02MAR26 612 C")!;
       expect(t.is_long).toBe(true);
       expect(t.open_realized).toBe(-11.7);
       expect(t.is_assignment).toBe(false);
+      expect(t.close_codes).toContain("Ep");
     });
 
     it("SPY 02MAR26 686 C — short expired (profit)", () => {
-      const t = expired.find((t) => t.symbol === "SPY 02MAR26 686 C")!;
+      const t = trades.find((t) => t.symbol === "SPY 02MAR26 686 C")!;
       expect(t.is_short).toBe(true);
       expect(t.open_realized).toBe(61.3);
       expect(t.is_assignment).toBe(false);
+      expect(t.close_codes).toContain("Ep");
     });
 
     it("SPY 02MAR26 691 C — long expired (loss)", () => {
-      const t = expired.find((t) => t.symbol === "SPY 02MAR26 691 C")!;
+      const t = trades.find((t) => t.symbol === "SPY 02MAR26 691 C")!;
       expect(t.is_long).toBe(true);
       expect(t.open_realized).toBe(-6.7);
+      expect(t.close_codes).toContain("Ep");
     });
   });
 
@@ -249,15 +235,13 @@ describe("extract qqq.htm", () => {
       const t = trades.find((t) => t.symbol === "AVAV 06MAR26 235 P")!;
       expect(t.is_long).toBe(true);
       expect(t.is_assignment).toBe(false);
-      expect(t.is_expired).toBe(false);
       expect(t.open_realized).toBe(-537.3);
     });
 
-    it("AVAV 240 P — short, not assigned, not expired", () => {
+    it("AVAV 240 P — short, not assigned", () => {
       const t = trades.find((t) => t.symbol === "AVAV 06MAR26 240 P")!;
       expect(t.is_short).toBe(true);
       expect(t.is_assignment).toBe(false);
-      expect(t.is_expired).toBe(false);
       expect(t.open_realized).toBe(621.7);
     });
   });

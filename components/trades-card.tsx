@@ -314,16 +314,11 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <Tooltip>
                   <TooltipTrigger>{trade.open_usd.toFixed(2)}</TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-semibold">{trade.is_long ? "Витрати на придбання" : trade.is_expired ? "Витрати (опціон згорів)" : "Витрати на зворотній викуп"} {trade.is_option ? "опціону" : "акцій"}</p>
+                    <p className="font-semibold">{trade.is_long ? "Витрати на придбання" : "Витрати на зворотній викуп"} {trade.is_option ? "опціону" : "акцій"}</p>
                     {trade.is_long ? (
                       <>
                         <p className="text-muted-foreground text-xs mt-1">Basis (вартість придбання)</p>
                         <p>{trade.open_basis.toFixed(2)}</p>
-                      </>
-                    ) : trade.is_expired ? (
-                      <>
-                        <p className="text-muted-foreground text-xs mt-1">Опціон згорів — зворотній викуп не потрібен</p>
-                        <p>0.00</p>
                       </>
                     ) : (
                       <>
@@ -387,16 +382,11 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <Tooltip>
                   <TooltipTrigger>{trade.open_uah.toFixed(2)}</TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-semibold">{trade.is_long ? "Витрати на купівлю" : trade.is_expired ? "Витрати (опціон згорів)" : "Витрати на зворотній викуп"} {trade.is_option ? "опціону" : "акцій"}</p>
+                    <p className="font-semibold">{trade.is_long ? "Витрати на купівлю" : "Витрати на зворотній викуп"} {trade.is_option ? "опціону" : "акцій"}</p>
                     {trade.is_long ? (
                       <>
                         <p className="text-muted-foreground text-xs mt-1">Basis × OpenRate</p>
                         <p>{trade.open_basis} × {trade.open_rate} = {trade.open_uah.toFixed(2)}</p>
-                      </>
-                    ) : trade.is_expired ? (
-                      <>
-                        <p className="text-muted-foreground text-xs mt-1">Опціон згорів — зворотній викуп не потрібен</p>
-                        <p>0.00</p>
                       </>
                     ) : (
                       <>
@@ -412,7 +402,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <Tooltip>
                   <TooltipTrigger>{trade.close_uah.toFixed(2)}</TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-semibold">{trade.is_long ? "Виручка від продажу" : trade.is_expired ? "Премія від продажу (опціон згорів)" : "Премія від продажу"} {trade.is_option ? "опціону" : "акцій"}</p>
+                    <p className="font-semibold">{trade.is_long ? "Виручка від продажу" : "Премія від продажу"} {trade.is_option ? "опціону" : "акцій"}</p>
                     {trade.is_long ? (
                       <>
                         <p className="text-muted-foreground text-xs mt-1">(Basis + Realized) × CloseRate</p>

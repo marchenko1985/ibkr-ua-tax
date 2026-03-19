@@ -207,35 +207,16 @@ describe("short", () => {
       expect(result.realized_uah).toBe(4000 - 4620); // -620
     });
 
-    it("expired worthless (full win, is_expired flag)", () => {
-      // Sold option for $100, expired worthless → realized = 0, is_expired = true
-      const result = uah({
-        open_rate,
-        close_rate,
-        basis: -100,
-        realized: 0,
-        commission: 0,
-        is_expired: true,
-      });
-
-      expect(result.open_uah).toBe(0);
-      expect(result.close_uah).toBe(100 * 40); // 4000 (full premium as income)
-      // 4000 - 0 + 0 = 4000
-      expect(result.realized_uah).toBe(4000);
-    });
-
-    it("expired worthless (IB reports realized = |basis|)", () => {
-      // Some IB statements report realized = |basis| for expired options
+    it("expired worthless (IBKR reports realized = |basis|)", () => {
+      // IBKR always reports realized = |basis| for expired short options
       // e.g. NVDA 114 C: basis=-54.42, realized=54.42, commission=0
-      // This falls through the regular short branch but produces same result:
-      // buyback = 54.42 - 54.42 = 0 → open_uah = 0
+      // buyback = 100 - 100 = 0 → open_uah = 0 (no buyback needed)
       const result = uah({
         open_rate,
         close_rate,
         basis: -100,
         realized: 100,
         commission: 0,
-        is_expired: false,
       });
 
       expect(result.open_uah).toBe(0); // buyback = 100 - 100 = 0
@@ -362,17 +343,17 @@ describe("real IB examples", () => {
     expect(result.realized_uah).toBeCloseTo(45967.6 - 47848.08, 2); // -1880.48
   });
 
-  it("SMCI short option expired worthless", () => {
+  it("SMCI short option expired worthless (realized = |basis|)", () => {
+    // IBKR reports realized=164.95 for expired short with basis=-164.95
     const result = uah({
       open_rate: 40,
       close_rate: 42,
       basis: -164.95,
-      realized: 0,
+      realized: 164.95,
       commission: 0,
-      is_expired: true,
     });
 
-    expect(result.open_uah).toBe(0);
+    expect(result.open_uah).toBe(0); // buyback = 164.95 - 164.95 = 0
     expect(result.close_uah).toBeCloseTo(164.95 * 40, 2); // 6598.00
     expect(result.realized_uah).toBeCloseTo(6598.0, 2);
   });
@@ -394,17 +375,17 @@ describe("real IB examples", () => {
     expect(result.realized_uah).toBeCloseTo(32.76 - 2986.4, 2); // -2953.64
   });
 
-  it("APP short option expired worthless", () => {
+  it("APP short option expired worthless (realized = |basis|)", () => {
+    // IBKR reports realized=479.78 for expired short with basis=-479.78
     const result = uah({
       open_rate: 40,
       close_rate: 42,
       basis: -479.78,
-      realized: 0,
+      realized: 479.78,
       commission: 0,
-      is_expired: true,
     });
 
-    expect(result.open_uah).toBe(0);
+    expect(result.open_uah).toBe(0); // buyback = 479.78 - 479.78 = 0
     expect(result.close_uah).toBeCloseTo(479.78 * 40, 2); // 19191.20
     expect(result.realized_uah).toBeCloseTo(19191.2, 2);
   });
@@ -502,7 +483,6 @@ describe("real fixture data", () => {
 
     it("QQQ 02MAR26 612 C — long call, expired worthless (loss)", () => {
       // basis=11.70, realized=-11.70 (total loss)
-      // Long expired: standard long formula works (no is_expired needed)
       const result = uah({
         open_rate: 40,
         close_rate: 42,
@@ -529,22 +509,6 @@ describe("real fixture data", () => {
 
       expect(result.open_uah).toBeCloseTo(0, 2); // buyback = 61.30 - 61.30 = 0
       expect(result.close_uah).toBeCloseTo(61.3 * 40, 2); // 2452.00
-      expect(result.realized_uah).toBeCloseTo(2452.0, 2);
-    });
-
-    it("SPY 02MAR26 686 C — same but with is_expired flag (safety net)", () => {
-      // Same data but with is_expired=true — should produce identical result
-      const result = uah({
-        open_rate: 40,
-        close_rate: 42,
-        basis: -61.3,
-        realized: 61.3,
-        commission: 0,
-        is_expired: true,
-      });
-
-      expect(result.open_uah).toBeCloseTo(0, 2);
-      expect(result.close_uah).toBeCloseTo(61.3 * 40, 2);
       expect(result.realized_uah).toBeCloseTo(2452.0, 2);
     });
 
