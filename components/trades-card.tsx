@@ -176,12 +176,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
             <TooltipContent>Реалізований прибуток/збиток при відкритті позиції. Не залежно від того чи була позиція long чи short - значення буде відповідати фактичному результату</TooltipContent>
           </Tooltip>
         </TableHead>
-        <TableHead className="text-center">
-          <Tooltip>
-            <TooltipTrigger>Commission</TooltipTrigger>
-            <TooltipContent>Комісія за закриття позиції</TooltipContent>
-          </Tooltip>
-        </TableHead>
+        {/* Commission column hidden — data kept in trade.close_commfee */}
         <TableHead className="text-center">
           <Tooltip>
             <TooltipTrigger>Open Date</TooltipTrigger>
@@ -274,7 +269,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
           <TableCell className={cn(trade.open_quantity > 0 && "text-blue-500", trade.open_quantity < 0 && "text-red-500")}>{trade.open_quantity}</TableCell>
           <TableCell>{trade.open_basis}</TableCell>
           <TableCell className={cn(trade.open_realized > 0 && "text-green-500", trade.open_realized < 0 && "text-red-500")}>{trade.open_realized}</TableCell>
-          <TableCell>{trade.close_commfee / trade.count}</TableCell>
+          {/* <TableCell>{trade.close_commfee / trade.count}</TableCell> */}
           <TableCell>{trade.open_date}</TableCell>
           {isConverted ? (
             <>
