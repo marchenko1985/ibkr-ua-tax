@@ -104,6 +104,8 @@ export function extract(document: Document) {
       is_long: item.open_quantity > 0,
       is_short: item.open_quantity < 0,
       is_option: isOption(item.symbol),
+      is_put: isPut(item.symbol),
+      is_call: isCall(item.symbol),
 
       // --- Assignment/Exercise flags
       // These flags are used to exclude option rows from Ф1 tax form output.
@@ -137,6 +139,14 @@ export function extract(document: Document) {
  */
 function isOption(symbol: string) {
   return /\s+\d{2}[A-Z]{3}\d{2}\s+\d+(\.\d+)?\s+[CP]$/.test(symbol);
+}
+
+function isPut(symbol: string) {
+  return /\s+\d{2}[A-Z]{3}\d{2}\s+\d+(\.\d+)?\s+P$/.test(symbol);
+}
+
+function isCall(symbol: string) {
+  return /\s+\d{2}[A-Z]{3}\d{2}\s+\d+(\.\d+)?\s+C$/.test(symbol);
 }
 
 /**

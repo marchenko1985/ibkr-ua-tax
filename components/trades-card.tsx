@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { fetchRates } from "@/lib/fetchRates";
 import { enrich } from "@/lib/enrich";
 import { ErrorCard } from "./error-card";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 import { Input } from "./ui/input";
 import { Field, FieldGroup } from "./ui/field";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
+import { detectType } from "@/lib/detectType";
 
 
 export function TradesCard({ document }: { document: Document | null | undefined }) {
@@ -94,6 +95,17 @@ export function TradesCard({ document }: { document: Document | null | undefined
         <TradesTable trades={trades} taxableTrades={taxableTrades} />
       </CardContent>
     </Card>
+    {trades.some(t => t.is_option) && <Card className="print:hidden">
+      <CardHeader>
+        <CardTitle>Статистика</CardTitle>
+        <CardDescription>
+          Деякі деталі щодо ваших опціонних угод
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <OptionStats trades={trades} />
+      </CardContent>
+    </Card>}
     <Card className="print:hidden">
       <CardHeader>
         <CardTitle>Додаток Ф1</CardTitle>
@@ -507,4 +519,203 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
       </TableFooter>
     </Table>
   </>
+}
+
+
+function OptionStats({ trades }: { trades: ReturnType<typeof extract> }) {
+  const groups = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof extract>>()
+    trades.filter(t => t.is_option).forEach(trade => {
+      const key = `${trade.symbol.split(" ").shift()}-${trade.open_date}`
+      if (!map.has(key)) {
+        map.set(key, [trade])
+      } else {
+        const existing = map.get(key)!
+        map.set(key, [
+          ...existing,
+          trade
+        ])
+      }
+    })
+    return [...map.values()].map(group => {
+      const open_date = group[0].open_date
+      const close_date = group[0].close_date
+      const days_held = (new Date(close_date).getTime() - new Date(open_date).getTime()) / (1000 * 60 * 60 * 24)
+      const expiryStr = group[0].symbol.split(" ")[1] // ddMMMYY
+      const monthMap: Record<string, string> = {
+        JAN: "01",
+        FEB: "02",
+        MAR: "03",
+        APR: "04",
+        MAY: "05",
+        JUN: "06",
+        JUL: "07",
+        AUG: "08",
+        SEP: "09",
+        OCT: "10",
+        NOV: "11",
+        DEC: "12",
+      }
+      const expiryDate = new Date("20" + expiryStr.slice(5) + "-" + monthMap[expiryStr.slice(2, 5)] + "-" + expiryStr.slice(0, 2)) // convert to YYYY-MM-DD
+      const dte = (expiryDate.getTime() - new Date(open_date).getTime()) / (1000 * 60 * 60 * 24)
+      console.log(expiryDate)
+      const strategy = detectType(group.map(t => ({
+        type: t.is_put ? "put" : "call",
+        position: t.open_quantity,
+        strike: Number(t.symbol.split(" ")[2]),
+        dte: days_held,
+        multiplier: t.is_option ? 100 : undefined,
+      })))
+      return {
+        symbol: group[0].symbol.split(" ").shift(),
+        // open_date,
+        // close_date,
+        days: days_held,
+        dte,
+        pnl: group.reduce((acc, trade) => acc + trade.open_realized, 0),
+        is_win: group.reduce((acc, trade) => acc + trade.open_realized, 0) > 0,
+        // legs: group.length,
+        strategy: strategy.name,
+        sentiment: strategy.sentiment,
+      }
+    })
+  }, [trades])
+  const by_strategy = useMemo(() => {
+    const total_count = groups.length
+    const strategies = Array.from(new Set(groups.map(g => g.strategy))).sort((a, b) => a.localeCompare(b))
+    return strategies.map(strategy => {
+      const items = groups.filter(g => g.strategy === strategy)
+      return {
+        strategy,
+        count: items.length / total_count * 100,
+        win_ratio: items.reduce((acc, item) => acc + (item.is_win ? 1 : 0), 0) / items.length * 100
+      }
+    }).sort((a, b) => b.count - a.count)
+  }, [groups])
+  const by_days = useMemo(() => {
+    const total_count = groups.length
+    const days = Array.from(new Set(groups.map(g => g.days))).sort((a, b) => a - b)
+    return days.map(day => {
+      const items = groups.filter(g => g.days === day)
+      return {
+        days: day,
+        count: items.length / total_count * 100,
+        win_ratio: items.reduce((acc, item) => acc + (item.is_win ? 1 : 0), 0) / items.length * 100
+      }
+    }).sort((a, b) => a.days - b.days)
+  }, [groups])
+  const by_dte = useMemo(() => {
+    const total_count = groups.length
+    const dtes = Array.from(new Set(groups.map(g => Math.round(g.dte)))).sort((a, b) => a - b)
+    return dtes.map(dte => {
+      const items = groups.filter(g => Math.round(g.dte) === dte)
+      return {
+        dte,
+        count: items.length / total_count * 100,
+        win_ratio: items.reduce((acc, item) => acc + (item.is_win ? 1 : 0), 0) / items.length * 100
+      }
+    }).sort((a, b) => a.dte - b.dte)
+  }, [groups])
+  const by_dte_bucket = useMemo(() => {
+    const total_count = groups.length
+    const buckets = [0, 7, 14, 30, 60, 90, 180]
+    return buckets.map((bucket, i) => {
+      const items = groups.filter(g => g.dte > bucket && g.dte <= (buckets[i + 1] || Infinity))
+      return {
+        bucket: `${bucket}-${buckets[i + 1] || "∞"} днів`,
+        count: items.length / total_count * 100,
+        win_ratio: items.reduce((acc, item) => acc + (item.is_win ? 1 : 0), 0) / items.length * 100
+      }
+    }).sort((a, b) => a.bucket.localeCompare(b.bucket))
+  }, [groups])
+  const by_sentiment = useMemo(() => {
+    const total_count = groups.length
+    const sentiments = Array.from(new Set(groups.flatMap(g => g.sentiment))).sort((a, b) => a.localeCompare(b))
+    return sentiments.map(sentiment => {
+      const items = groups.filter(g => g.sentiment.some(s => s === sentiment))
+      return {
+        sentiment,
+        count: items.length / total_count * 100,
+        win_ratio: items.reduce((acc, item) => acc + (item.is_win ? 1 : 0), 0) / items.length * 100
+      }
+    }).sort((a, b) => b.count - a.count)
+  }, [groups])
+  return <div className="flex gap-4">
+    <div>
+      <p className="text-center"><b>Загалом</b></p>
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableHead>Усього угод</TableHead>
+            <TableCell>{groups.length}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableHead>Середня тривалість (днів)</TableHead>
+            <TableCell>{(groups.reduce((acc, item) => acc + item.days, 0) / groups.length).toFixed(0)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableHead>Win Rate</TableHead>
+            <TableCell>{(groups.reduce((acc, item) => acc + (item.is_win ? 1 : 0), 0) / groups.length * 100).toFixed(0)}%</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+    <div>
+      <p className="text-center"><b>Деталі по DTE</b></p>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Тривалість (днів)</TableHead>
+            <TableHead>% від усіх угод</TableHead>
+            <TableHead>Win Rate</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {by_dte.map((item, i) => <TableRow key={i}>
+            <TableCell>{item.dte.toFixed(0)} днів</TableCell>
+            <TableCell>{item.count.toFixed(0)}%</TableCell>
+            <TableCell>{item.win_ratio.toFixed(0)}%</TableCell>
+          </TableRow>)}
+        </TableBody>
+      </Table>
+    </div>
+    <div>
+      <p className="text-center"><b>Деталі по стратегіях</b></p>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Стратегія</TableHead>
+            <TableHead>% від усіх угод</TableHead>
+            <TableHead>Win Rate</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {by_strategy.map((item, i) => <TableRow key={i}>
+            <TableCell>{item.strategy}</TableCell>
+            <TableCell>{item.count.toFixed(0)}%</TableCell>
+            <TableCell>{item.win_ratio.toFixed(0)}%</TableCell>
+          </TableRow>)}
+        </TableBody>
+      </Table>
+    </div>
+    <div>
+      <p className="text-center"><b>Деталі по настрою</b></p>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Настрій</TableHead>
+            <TableHead>% від усіх угод</TableHead>
+            <TableHead>Win Rate</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {by_sentiment.map((item, i) => <TableRow key={i}>
+            <TableCell>{item.sentiment}</TableCell>
+            <TableCell>{item.count.toFixed(0)}%</TableCell>
+            <TableCell>{item.win_ratio.toFixed(0)}%</TableCell>
+          </TableRow>)}
+        </TableBody>
+      </Table>
+    </div>
+  </div>
 }
