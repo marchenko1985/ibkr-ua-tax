@@ -1,6 +1,6 @@
+import { cn } from "cn";
 import type { Trade } from "@/lib/extract";
 import type { tradesTotals } from "@/lib/totals";
-import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
 import { ConvertedCells } from "./converted-cells";
 import { pnlClassName } from "./labels";
@@ -11,8 +11,9 @@ import { CloseUahCell, OpenUahCell, RealizedUahCell } from "./uah-cells";
 import { CloseUsdCell, OpenUsdCell, RealizedUsdCell } from "./usd-cells";
 
 export function TradesTable({ trades, total }: { trades: Trade[]; total: ReturnType<typeof tradesTotals> }) {
+  // tighter cells than shadcn defaults so all 14 columns fit the page; the printable preview has its own table
   return (
-    <Table className="text-center">
+    <Table className="text-center [&_td]:px-1 [&_th]:px-1">
       <TradesTableHeader />
       <TableBody>
         {trades.map((trade) => (

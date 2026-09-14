@@ -1,4 +1,5 @@
 import type { Trade } from "@/lib/extract";
+import { TooltipLines } from "../../tooltip-lines";
 import { TableCell } from "../../ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
@@ -15,8 +16,10 @@ export function ConvertedCells({ trade }: { trade: Trade }) {
         <Tooltip>
           <TooltipTrigger>—</TooltipTrigger>
           <TooltipContent>
-            <p className="font-semibold">Опціон конвертовано в акції</p>
-            <p className="mt-1 text-muted-foreground text-xs">Курси не застосовуються — позиція не є податковою подією.</p>
+            <TooltipLines>
+              <p className="font-semibold">Опціон конвертовано в акції</p>
+              <p className="mt-1 text-muted-foreground text-xs">Курси не застосовуються — позиція не є податковою подією.</p>
+            </TooltipLines>
           </TooltipContent>
         </Tooltip>
       </TableCell>
@@ -32,9 +35,11 @@ function NotTaxableTooltip({ kind }: { kind: string }) {
     <Tooltip>
       <TooltipTrigger>—</TooltipTrigger>
       <TooltipContent>
-        <p className="font-semibold">Опціон конвертовано в акції ({kind})</p>
-        <p className="mt-1 text-muted-foreground text-xs">Це не є податковою подією — вартість опціону включена в базову вартість акцій.</p>
-        <p className="text-muted-foreground text-xs">Результат буде відображено при закритті позиції в акціях.</p>
+        <TooltipLines>
+          <p className="font-semibold">Опціон конвертовано в акції ({kind})</p>
+          <p className="mt-1 text-muted-foreground text-xs">Це не є податковою подією — вартість опціону включена в базову вартість акцій.</p>
+          <p className="text-muted-foreground text-xs">Результат буде відображено при закритті позиції в акціях.</p>
+        </TooltipLines>
       </TooltipContent>
     </Tooltip>
   );

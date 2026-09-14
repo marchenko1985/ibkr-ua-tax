@@ -6,7 +6,7 @@ export function HowCard() {
       <CardHeader>
         <CardTitle>Як сформувати звіт</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent>
         <ol className="list-inside list-decimal space-y-2">
           <li>
             Переходимо у розділ <b>Performance & Reports / Statements</b> в кабінеті IBKR.

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { Cell, Section } from "./layout";
 import { type TableRowData, tableRows } from "./table-rows";
 

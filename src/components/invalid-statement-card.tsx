@@ -9,7 +9,7 @@ export function InvalidStatementCard({ problems }: { problems: Problem[] }) {
         <CardTitle>Звіт сформовано з неправильними налаштуваннями</CardTitle>
         <CardDescription>Розрахунки з такого звіту будуть неправильними, тому ми їх не показуємо.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent>
         <p>
           Відредагуйте звіт у розділі <b>Custom Statements</b> кабінету IBKR та змініть налаштування:
         </p>

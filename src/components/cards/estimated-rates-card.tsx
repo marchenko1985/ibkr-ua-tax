@@ -13,7 +13,7 @@ export function EstimatedRatesCard({ statement }: { statement: Statement }) {
         <CardTitle>Увага: курси НБУ</CardTitle>
         <CardDescription>Для деяких дат курс НБУ відсутній, тож його було оцінено.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent>
         <p>НБУ не встановив курс на ці дати — використано середнє між курсами найближчого попереднього та наступного дня.</p>
         <p>
           Дати: <b>{dates.join(", ")}</b>

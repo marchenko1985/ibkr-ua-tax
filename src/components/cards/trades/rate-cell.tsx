@@ -1,5 +1,6 @@
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { EstimatedRateHint } from "../../estimated-rate-hint";
+import { TooltipLines } from "../../tooltip-lines";
 import { TableCell } from "../../ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
@@ -12,10 +13,12 @@ export function RateCell({ label, date, rate, estimated, className }: { label: s
           {estimated ? "*" : ""}
         </TooltipTrigger>
         <TooltipContent>
-          <p>Курс долара на дату {label} позиції</p>
-          <p>Дата: {date}</p>
-          <p>Курс: {rate}</p>
-          {estimated ? <EstimatedRateHint /> : null}
+          <TooltipLines>
+            <p>Курс долара на дату {label} позиції</p>
+            <p>Дата: {date}</p>
+            <p>Курс: {rate}</p>
+            {estimated ? <EstimatedRateHint /> : null}
+          </TooltipLines>
         </TooltipContent>
       </Tooltip>
     </TableCell>

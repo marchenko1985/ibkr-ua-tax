@@ -1,3 +1,4 @@
+import { TooltipLines } from "../../tooltip-lines";
 import { TableHead, TableHeader, TableRow } from "../../ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
@@ -38,9 +39,11 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Quantity</TooltipTrigger>
               <TooltipContent>
-                Кількість
-                <br />
-                Зауважте, що для short позицій значення буде від'ємним
+                <TooltipLines>
+                  Кількість
+                  <br />
+                  Зауважте, що для short позицій значення буде від'ємним
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -48,11 +51,13 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Basis</TooltipTrigger>
               <TooltipContent>
-                Базова вартість закритої позиції
-                <br />
-                Сумма грошей, що була витрачена на відкриття позиції.
-                <br />
-                Для short позицій значення буде від'ємним
+                <TooltipLines>
+                  Базова вартість закритої позиції
+                  <br />
+                  Сумма грошей, що була витрачена на відкриття позиції.
+                  <br />
+                  Для short позицій значення буде від'ємним
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -73,10 +78,12 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Open</TooltipTrigger>
               <TooltipContent>
-                <p>Витрати в доларах (скориговане значення)</p>
-                <p className="mt-1 text-muted-foreground text-xs">Long: Basis (вартість придбання)</p>
-                <p className="text-muted-foreground text-xs">Short: |Basis| − Realized (вартість зворотнього викупу)</p>
-                <p className="text-muted-foreground text-xs">Expired short: 0 (нічого не викуповували, опціон згорів)</p>
+                <TooltipLines>
+                  <p>Витрати в доларах (скориговане значення)</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: Basis (вартість придбання)</p>
+                  <p className="text-muted-foreground text-xs">Short: |Basis| − Realized (вартість зворотнього викупу)</p>
+                  <p className="text-muted-foreground text-xs">Expired short: 0 (нічого не викуповували, опціон згорів)</p>
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -84,10 +91,12 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Close</TooltipTrigger>
               <TooltipContent>
-                <p>Дохід в доларах (скориговане значення)</p>
-                <p className="mt-1 text-muted-foreground text-xs">Long: Basis + Realized (виручка від продажу з урахуванням комісій)</p>
-                <p className="text-muted-foreground text-xs">Short: |Basis| (премія від продажу)</p>
-                <p className="text-muted-foreground text-xs">Expired long: 0 (опціон згорів, нічого не отримано)</p>
+                <TooltipLines>
+                  <p>Дохід в доларах (скориговане значення)</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: Basis + Realized (виручка від продажу з урахуванням комісій)</p>
+                  <p className="text-muted-foreground text-xs">Short: |Basis| (премія від продажу)</p>
+                  <p className="text-muted-foreground text-xs">Expired long: 0 (опціон згорів, нічого не отримано)</p>
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -95,8 +104,10 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Realized</TooltipTrigger>
               <TooltipContent>
-                <p>Реалізований прибуток/збиток в доларах</p>
-                <p className="mt-1 text-muted-foreground text-xs">Close USD − Open USD</p>
+                <TooltipLines>
+                  <p>Реалізований прибуток/збиток в доларах</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Close USD − Open USD</p>
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -116,10 +127,12 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Open</TooltipTrigger>
               <TooltipContent>
-                <p>Витрати в гривнях</p>
-                <p className="mt-1 text-muted-foreground text-xs">Long: Basis × OpenRate (вартість купівлі)</p>
-                <p className="text-muted-foreground text-xs">Short: (|Basis| − Realized) × CloseRate (вартість зворотнього викупу)</p>
-                <p className="text-muted-foreground text-xs">Expired: 0 (нічого не викуповували)</p>
+                <TooltipLines>
+                  <p>Витрати в гривнях</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: Basis × OpenRate (вартість купівлі)</p>
+                  <p className="text-muted-foreground text-xs">Short: (|Basis| − Realized) × CloseRate (вартість зворотнього викупу)</p>
+                  <p className="text-muted-foreground text-xs">Expired: 0 (нічого не викуповували)</p>
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -127,10 +140,12 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Close</TooltipTrigger>
               <TooltipContent>
-                <p>Дохід в гривнях</p>
-                <p className="mt-1 text-muted-foreground text-xs">Long: (Basis + Realized) × CloseRate (виручка від продажу)</p>
-                <p className="text-muted-foreground text-xs">Short: |Basis| × OpenRate (премія від продажу)</p>
-                <p className="text-muted-foreground text-xs">Expired: |Basis| × OpenRate (вся премія як дохід)</p>
+                <TooltipLines>
+                  <p>Дохід в гривнях</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: (Basis + Realized) × CloseRate (виручка від продажу)</p>
+                  <p className="text-muted-foreground text-xs">Short: |Basis| × OpenRate (премія від продажу)</p>
+                  <p className="text-muted-foreground text-xs">Expired: |Basis| × OpenRate (вся премія як дохід)</p>
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -138,8 +153,10 @@ export function TradesTableHeader() {
             <Tooltip>
               <TooltipTrigger>Realized</TooltipTrigger>
               <TooltipContent>
-                <p>Реалізований прибуток/збиток в гривнях</p>
-                <p className="mt-1 text-muted-foreground text-xs">Close UAH − Open UAH</p>
+                <TooltipLines>
+                  <p>Реалізований прибуток/збиток в гривнях</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Close UAH − Open UAH</p>
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>

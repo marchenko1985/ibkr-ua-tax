@@ -68,7 +68,7 @@ npm run upgrade        # bump all dependencies to latest, including majors
 - Biome (`biome.jsonc`) starts from **all** rules (`"preset": "all"`) plus picked nursery rules; every rule turned off has a comment with the reason. Don't turn rules off or add `biome-ignore` without agreeing first.
 - Complexity limits: 80 lines per function, cognitive complexity 20, 400 lines per file, 5 params. Tests are exempt. Temporary per-file exceptions are marked `TODO` in `biome.jsonc` and must go away.
 - TypeScript is strict, including `noUncheckedIndexedAccess`.
-- `src/components/ui/` holds vendored shadcn components — excluded from Biome, knip and jscpd; re-add them with the shadcn CLI instead of editing.
+- `src/components/ui/` holds vendored shadcn components (base-ui) — excluded from Biome, knip and jscpd; refresh them with `npx shadcn@latest add --overwrite <names>` instead of editing, then check the app in the browser. Adapt our code to changed components, not the other way around (e.g. multi-line tooltips are wrapped in `TooltipLines`, because `TooltipContent` lays children out in a row). Class names are merged with `cn` from the `cn` package, same as in the vendored components.
 - No React Compiler (dropped with `@vitejs/plugin-react` 6); memoize by hand only where it matters.
 
 ## Domain notes

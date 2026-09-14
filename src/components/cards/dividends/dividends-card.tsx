@@ -1,9 +1,10 @@
+import { cn } from "cn";
 import { useMemo } from "react";
 import type { Dividend } from "@/lib/dividends";
 import type { Statement } from "@/lib/statement";
 import { dividendsTotals } from "@/lib/totals";
-import { cn } from "@/lib/utils";
 import { EstimatedRateHint } from "../../estimated-rate-hint";
+import { TooltipLines } from "../../tooltip-lines";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "../../ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
@@ -61,8 +62,10 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
             <Tooltip>
               <TooltipTrigger>Amount</TooltipTrigger>
               <TooltipContent>
-                <p>Сума нарахованих дивідендів</p>
-                <p className="mt-1 text-muted-foreground text-xs">Податок, утриманий за кордоном, не віднімається від бази оподаткування</p>
+                <TooltipLines>
+                  <p>Сума нарахованих дивідендів</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Податок, утриманий за кордоном, не віднімається від бази оподаткування</p>
+                </TooltipLines>
               </TooltipContent>
             </Tooltip>
           </TableHead>
@@ -93,10 +96,12 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
                   {div.rate_estimated ? "*" : ""}
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Курс долара на дату нарахування дивідендів</p>
-                  <p>Дата: {div.date}</p>
-                  <p>Курс: {div.rate}</p>
-                  {div.rate_estimated ? <EstimatedRateHint /> : null}
+                  <TooltipLines>
+                    <p>Курс долара на дату нарахування дивідендів</p>
+                    <p>Дата: {div.date}</p>
+                    <p>Курс: {div.rate}</p>
+                    {div.rate_estimated ? <EstimatedRateHint /> : null}
+                  </TooltipLines>
                 </TooltipContent>
               </Tooltip>
             </TableCell>
@@ -104,10 +109,12 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
               <Tooltip>
                 <TooltipTrigger>{div.amount_uah.toFixed(2)}</TooltipTrigger>
                 <TooltipContent>
-                  <p>Сума дивідендів у гривнях</p>
-                  <p>
-                    {div.amount} × {div.rate} = {div.amount_uah.toFixed(2)}
-                  </p>
+                  <TooltipLines>
+                    <p>Сума дивідендів у гривнях</p>
+                    <p>
+                      {div.amount} × {div.rate} = {div.amount_uah.toFixed(2)}
+                    </p>
+                  </TooltipLines>
                 </TooltipContent>
               </Tooltip>
             </TableCell>
