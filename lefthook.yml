@@ -1,42 +1,35 @@
-# EXAMPLE USAGE:
+# Git hooks via lefthook (https://lefthook.dev), installed by `npm install` (prepare script).
 #
-#   Refer for explanation to following link:
-#   https://lefthook.dev/configuration/
+# Pre-push only, deliberately no pre-commit: commits happen often mid-task and
+# checks are allowed to fail while work is in progress. Before anything leaves
+# the machine the whole project must be green. Whole-project scope because tsc
+# and knip need the whole program anyway, and the project is small (~seconds).
 #
-# pre-push:
-#   jobs:
-#     - name: packages audit
-#       tags:
-#         - frontend
-#         - security
-#       run: yarn audit
+# `files: git ls-files` overrides lefthook's default push-files list, which is
+# empty on no-op pushes and would silently skip the jobs.
 #
-#     - name: gems audit
-#       tags:
-#         - backend
-#         - security
-#       run: bundle audit
+# Housekeeping that is not needed on every push (outdated deps, audit, jscpd)
+# lives in `npm run housekeeping`.
 #
-# pre-commit:
-#   parallel: true
-#   jobs:
-#     - run: yarn eslint {staged_files}
-#       glob: "*.{js,ts,jsx,tsx}"
-#
-#     - name: rubocop
-#       glob: "*.rb"
-#       exclude:
-#         - config/application.rb
-#         - config/routes.rb
-#       run: bundle exec rubocop --force-exclusion -- {all_files}
-#
-#     - name: govet
-#       files: git ls-files -m
-#       glob: "*.go"
-#       run: go vet -- {files}
-#
-#     - script: "hello.js"
-#       runner: node
-#
-#     - script: "hello.go"
-#       runner: go run
+# Do not bypass with --no-verify or LEFTHOOK=0 — fix the failure instead.
+min_version: "2.0.0"
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: lint
+      run: npm run lint
+      files: git ls-files
+      fail_text: "Biome check failed (lint or formatting). Run `npm run format` to auto-fix, then fix what remains."
+    - name: typecheck
+      run: npm run typecheck
+      files: git ls-files
+      fail_text: "TypeScript errors. Fix all type errors before pushing."
+    - name: test
+      run: npm test
+      files: git ls-files
+      fail_text: "Tests failed. Fix failing tests before pushing."
+    - name: unused
+      run: npm run unused
+      files: git ls-files
+      fail_text: "Knip found unused files, exports or dependencies. Remove them or explain the exception in knip.json."

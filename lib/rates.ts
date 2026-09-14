@@ -52,7 +52,7 @@ export function parseRates(data: NbuRate[]) {
  * Days added before and after the requested range when fetching rates,
  * so a date at the edge of the range still has sibling days to estimate from.
  */
-export const RATES_MARGIN_DAYS = 7;
+const RATES_MARGIN_DAYS = 7;
 
 /** Shifts YYYY-MM-DD date by given number of days */
 export function addDays(date: string, days: number) {

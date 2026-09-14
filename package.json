@@ -1,12 +1,17 @@
 {
   "scripts": {
-    "start": "npx vite",
-    "build": "npx vite build",
-    "test": "npx vitest",
-    "unused": "npx knip",
-    "outdated": "npx npm-check-updates",
-    "upgrade": "npm run outdated -- -u",
-    "format": "npx prettier --write ."
+    "start": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "lint": "biome check --error-on-warnings",
+    "format": "biome check --write",
+    "typecheck": "tsc --noEmit",
+    "unused": "knip",
+    "dedup": "npx -y jscpd .",
+    "outdated": "npx -y npm-check-updates",
+    "upgrade": "npx -y npm-check-updates -u && npm install",
+    "housekeeping": "npm run outdated; npm audit; npm run unused; npm run dedup; npm run lint",
+    "prepare": "lefthook install"
   },
   "type": "module",
   "dependencies": {
@@ -14,7 +19,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.46.0",
-    "radix-ui": "^1.6.7",
     "react": "^19",
     "react-dom": "^19",
     "shadcn": "^4.21.0",
