@@ -132,6 +132,16 @@
       }
     },
     {
+      // Command line scripts run in Node and print their progress
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" },
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    {
       // Vite requires a default export and runs in Node
       "includes": ["vite.config.ts"],
       "linter": {
