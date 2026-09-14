@@ -21,7 +21,8 @@ Wrong numbers in a tax report are worse than no numbers. So:
 
 - Extraction (`src/lib/extract.ts`) and calculation (`src/lib/uah.ts`, `src/lib/enrich.ts`) must be covered by tests, and every change there comes with tests.
 - IBKR report layout depends on statement settings — the number and order of columns changes (e.g. "Profit and Loss: Realized P/L Only" removes `C. Price` and `MTM P/L`). A one-column shift silently produces completely wrong amounts. Treat column mapping with extreme care.
-- Test fixtures live in `files/` and are **anonymized**. This repository is **public** — never commit a real statement, account id, name, or address.
+- A statement built with wrong settings is rejected before anything is calculated (`validateStatement`), and `extract` refuses trades columns other than `TRADES_HEADERS`. Never relax these checks to "make a report work" — ask first.
+- Test fixtures live in `files/` and are **anonymized** with `npm run anonymize -- <input> <output>`. `files/settings/` holds the same days built with different statement settings, one file per wrong setting. This repository is **public** — never commit a real statement, account id, name, or address.
 
 ## Architecture
 
@@ -30,6 +31,7 @@ src/
   App.tsx                      reads uploaded file → parseStatement → loadStatement → <StatementCards>
   lib/                         pure logic, no React, covered by tests (*.test.ts next to the code)
     statement.ts               Statement = { document, trades, dividends }; one NBU request for all dates
+    validate.ts                statement settings check; wrong settings → no calculations, list of settings to fix
     extract.ts                 trades (closed lots) from the statement HTML
     dividends.ts               dividends and withholding tax
     rates.ts                   NBU rates: fetch, parse, rateFor (average of sibling days when missing)

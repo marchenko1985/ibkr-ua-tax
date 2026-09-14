@@ -20,11 +20,20 @@
  *   Ep — Expired Position: the option expired worthless. This IS a taxable event —
  *         the full premium is either a realized loss (long) or realized profit (short).
  *
+ * Throws when the trades table columns are not exactly TRADES_HEADERS — a shifted column
+ * would silently produce wrong amounts (see validateStatement for user facing explanation).
+ *
  * @param document parsed HTML document
  * @returns array of transaction objects with derived flags for filtering and calculation,
  *   id is the position of the closed lot in the statement, stable identity for UI
  */
 export function extract(document: Document) {
+  for (const headers of tradesHeaders(document)) {
+    if (headers.join("|") !== TRADES_HEADERS.join("|")) {
+      throw new Error(`Unexpected trades table columns: ${headers.join(", ")}`);
+    }
+  }
+
   return Array.from(document.querySelectorAll("tbody.row-detail td:nth-child(1)"))
     .filter((td) => td.textContent === CLOSED_LOT)
     .map((td) => td.closest("tr"))
@@ -35,24 +44,36 @@ export function extract(document: Document) {
 
 export type Trade = ReturnType<typeof extract>[number];
 
-const CLOSED_LOT = "Closed Lot:";
+export const CLOSED_LOT = "Closed Lot:";
+
+/** Trades table columns of a statement built with settings from the guide (how-card) */
+export const TRADES_HEADERS = ["Symbol", "Date/Time", "Exchange", "Quantity", "T. Price", "Proceeds", "Comm/Fee", "Basis", "Realized P/L", "Code"];
 
 /**
- * Trades table columns (1-based), statement built with "Profit and Loss: Realized P/L Only".
- * TODO: read positions from table header instead, other statement settings add or remove columns.
+ * Header rows of the trades table, one per asset category (Stocks, Equity and Index Options, ...),
+ * empty when the statement has no trades section
  */
+export function tradesHeaders(document: Document) {
+  return Array.from(document.querySelectorAll('div[id^="tblTransactions_"] table thead tr')).map((tr) => Array.from(tr.querySelectorAll("th")).map((th) => th.textContent.trim()));
+}
+
+/** 1-based column positions for td:nth-child, derived from TRADES_HEADERS */
 const COLUMN = {
-  symbol: 1,
-  datetime: 2,
-  exchange: 3,
-  quantity: 4,
-  tprice: 5,
-  proceeds: 6,
-  commfee: 7,
-  basis: 8,
-  realized: 9,
-  code: 10,
+  symbol: column("Symbol"),
+  datetime: column("Date/Time"),
+  exchange: column("Exchange"),
+  quantity: column("Quantity"),
+  tprice: column("T. Price"),
+  proceeds: column("Proceeds"),
+  commfee: column("Comm/Fee"),
+  basis: column("Basis"),
+  realized: column("Realized P/L"),
+  code: column("Code"),
 };
+
+function column(header: string) {
+  return TRADES_HEADERS.indexOf(header) + 1;
+}
 
 /** "2026-03-13, 11:41:16" → "2026-03-13" */
 const DATE_LENGTH = "YYYY-MM-DD".length;
@@ -149,13 +170,13 @@ function findCloseRow(lot: Element) {
   return row ?? lot.closest("tbody")?.previousElementSibling?.querySelector("tr");
 }
 
-function cellText(row: Element | null | undefined, column: number) {
-  return row?.querySelector(`td:nth-child(${column})`)?.textContent ?? "";
+function cellText(row: Element | null | undefined, position: number) {
+  return row?.querySelector(`td:nth-child(${position})`)?.textContent ?? "";
 }
 
 /** Numbers have thousands separators: "17,128.55" */
-function cellNumber(row: Element | null | undefined, column: number) {
-  return Number(row?.querySelector(`td:nth-child(${column})`)?.textContent?.replaceAll(",", ""));
+function cellNumber(row: Element | null | undefined, position: number) {
+  return Number(row?.querySelector(`td:nth-child(${position})`)?.textContent?.replaceAll(",", ""));
 }
 
 /**
