@@ -2,6 +2,9 @@
 
 export type SampleSize = "solid" | "small" | "noisy";
 
+/** chart bars of small and noisy buckets fade out, so they are not read as an edge */
+export const SAMPLE_SIZE_OPACITY: Record<SampleSize, number> = { solid: 1, small: 0.55, noisy: 0.25 };
+
 const SOLID_SHARE = 0.1;
 const SOLID_MIN = 5;
 const SOLID_MAX = 30;

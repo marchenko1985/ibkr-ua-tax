@@ -50,6 +50,8 @@ export interface Setup {
   maxExpiry: string;
   expiryCount: number;
   singleExpiry: boolean;
+  /** puts only, calls only, or both (straddles, condors) */
+  putCall: "puts" | "calls" | "mixed";
   dteAtOpenMin: number;
   dteAtOpenMax: number;
   dteAtOpenBucket: DteBucket;
@@ -85,7 +87,7 @@ export const DTE_BUCKETS = [
   { label: "90+", max: Number.POSITIVE_INFINITY },
 ] as const;
 
-const LEG_COUNT_BUCKETS = [
+export const LEG_COUNT_BUCKETS = [
   { label: "1", max: 1 },
   { label: "2", max: 2 },
   { label: "3", max: 3 },
@@ -181,6 +183,7 @@ function toSetup(setupId: string, items: Trade[]): Setup {
     maxExpiry: expiries.at(-1) ?? "",
     expiryCount: expiries.length,
     singleExpiry: expiries.length === 1,
+    putCall: putCallOf(legs.map((leg) => leg.option.type)),
     dteAtOpenMin: Math.min(...dtes),
     dteAtOpenMax: Math.max(...dtes),
     dteAtOpenBucket: bucketOf(DTE_BUCKETS, Math.min(...dtes)),
@@ -224,6 +227,13 @@ function strategy(legs: readonly { item: Trade; option: OptionSymbol }[], openDa
     strategySentiment: detected.sentiment,
     strategyCategory: detected.category,
   };
+}
+
+function putCallOf(types: readonly OptionSymbol["type"][]): Setup["putCall"] {
+  if (types.every((type) => type === "put")) {
+    return "puts";
+  }
+  return types.every((type) => type === "call") ? "calls" : "mixed";
 }
 
 /** "2026-03-13, 11:41:16" → "2026-03-13T11:41:16" */

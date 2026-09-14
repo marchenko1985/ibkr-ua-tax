@@ -24,3 +24,18 @@ export function sentimentLabel(sentiment: string) {
 export function holdingDaysLabel(bucket: string) {
   return HOLDING_DAYS[bucket] ?? bucket;
 }
+
+/** Monday first, keys as in Setup.openWeekday */
+export const WEEKDAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const WEEKDAYS: Record<string, string> = { Mon: "Пн", Tue: "Вт", Wed: "Ср", Thu: "Чт", Fri: "Пт", Sat: "Сб", Sun: "Нд" };
+
+export function weekdayLabel(weekday: string) {
+  return WEEKDAYS[weekday] ?? weekday;
+}
+
+const LEG_COUNTS: Record<string, string> = { "1": "1 нога", "2": "2 ноги", "3": "3 ноги", "4+": "4+ ноги" };
+
+export function legCountLabel(bucket: string) {
+  return LEG_COUNTS[bucket] ?? bucket;
+}

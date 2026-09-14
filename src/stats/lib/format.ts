@@ -95,3 +95,10 @@ export function formatShortDate(date: string): string {
 export function formatDate(date: string): string {
   return fullDate.format(new Date(`${date}T00:00:00Z`));
 }
+
+const shortMonth = new Intl.DateTimeFormat("uk-UA", { month: "short", timeZone: "UTC" });
+
+/** "2026-03" → "бер. 2026" */
+export function formatMonth(yearMonth: string): string {
+  return `${shortMonth.format(new Date(`${yearMonth}-01T00:00:00Z`))} ${yearMonth.slice(0, "YYYY".length)}`;
+}

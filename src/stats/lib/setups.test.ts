@@ -42,6 +42,7 @@ describe("buildSetups files/amd.htm", () => {
       holdingDaysBucket: "22-45d",
       minExpiry: "2026-03-20",
       singleExpiry: true,
+      putCall: "puts",
       dteAtOpenMin: 35,
       dteAtOpenBucket: "22-45",
     });
@@ -64,7 +65,15 @@ describe("buildSetups files/qqq.htm", () => {
 
   it("unrelated spreads on the same underlying opened the same day become one setup", () => {
     // known limitation: statement lots have no open time, SPY 686/691 C and 695/700 C spreads merge
-    expect(find(list, "SPY:2026-03-02")).toMatchObject({ legCount: 4, legCountBucket: "4+", strategyName: "Custom", singleExpiry: false, expiryCount: 2, dteAtOpenMin: 0, dteAtOpenMax: 4 });
+    expect(find(list, "SPY:2026-03-02")).toMatchObject({ legCount: 4, legCountBucket: "4+", strategyName: "Custom", putCall: "calls", singleExpiry: false, expiryCount: 2, dteAtOpenMin: 0, dteAtOpenMax: 4 });
+  });
+
+  it("puts and calls in one setup are mixed", () => {
+    const trades = extract(loadFixture("files/qqq.htm"));
+    const withPut = trades.map((t) => (t.symbol === "SPY 06MAR26 700 C" ? { ...t, symbol: "SPY 06MAR26 700 P" } : t));
+
+    expect(find(buildSetups(withPut), "SPY:2026-03-02").putCall).toBe("mixed");
+    expect(find(list, "QQQ:2026-03-02").putCall).toBe("calls");
   });
 });
 
