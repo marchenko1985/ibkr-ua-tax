@@ -7,11 +7,13 @@ import { rateFor } from "./rates";
  * (the part of the description before " ("), withholding amounts are negative.
  *
  * @param document parsed HTML document
+ * @returns dividends, id is the position of the row in the statement, stable identity for UI
  */
 export function extractDividends(document: Document) {
   return Array.from(document.querySelectorAll('div[id^="tblCombDiv_"] table tbody tr'))
     .slice(1, -1)
-    .map((tr) => ({
+    .map((tr, index) => ({
+      id: index + 1,
       date: tr.querySelector("td:nth-child(1)")?.textContent ?? "",
       identifier: tr.querySelector("td:nth-child(2)")?.textContent?.split(" (")?.shift() ?? "",
       description: tr.querySelector("td:nth-child(2)")?.textContent ?? "",

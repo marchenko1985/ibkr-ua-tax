@@ -25,6 +25,7 @@ describe("extractDividends", () => {
   it("qqq.htm — single dividend without withholding tax section", () => {
     expect(extractDividends(loadFixture("files/qqq.htm"))).toEqual([
       {
+        id: 1,
         date: "2026-02-27",
         identifier: "CCL(PA1436583006) Cash Dividend USD 0.15 per Share",
         description: "CCL(PA1436583006) Cash Dividend USD 0.15 per Share (Ordinary Dividend)",

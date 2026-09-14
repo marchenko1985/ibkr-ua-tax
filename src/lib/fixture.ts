@@ -1,7 +1,7 @@
 // Test helpers — not used by the app.
 import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import type { Trade } from "./extract";
 
 export function loadFixture(path: string): Document {
@@ -36,4 +36,11 @@ export function expectLotsAddUpToCloseRows(trades: Trade[]) {
     expect(Math.abs(basis + close.close_basis), `basis of ${key}`).toBeLessThanOrEqual(tolerance);
     expect(Math.abs(realized - close.close_realized), `realized of ${key}`).toBeLessThanOrEqual(tolerance);
   }
+}
+
+/** Replaces global fetch with a mock responding with given JSON; restore with vi.unstubAllGlobals() */
+export function stubFetch(data: unknown) {
+  const fetch = vi.fn(async (_url: URL, _init?: RequestInit) => Response.json(data));
+  vi.stubGlobal("fetch", fetch);
+  return fetch;
 }

@@ -1,7 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { extract } from "./extract";
-import { fetchRates as fetchTradeRates, withRates } from "./fetchRates";
-import { loadFixture } from "./fixture";
+import { stubFetch } from "./fixture";
 import { addDays, fetchRates, parseRates, rateFor, ratesUrl } from "./rates";
 
 // Shape of https://bank.gov.ua/NBU_Exchange/exchange_site?valcode=usd&json
@@ -10,12 +8,6 @@ const nbuResponse = [
   { exchangedate: "03.03.2026", r030: 840, cc: "USD", txt: "Долар США", enname: "US Dollar", rate: 41.6123, units: 1, rate_per_unit: 41.6123, group: "1", calcdate: "02.03.2026" },
   { exchangedate: "03.03.2026", r030: 978, cc: "EUR", txt: "Євро", enname: "Euro", rate: 45.1, units: 1, rate_per_unit: 45.1, group: "1", calcdate: "02.03.2026" },
 ];
-
-function stubFetch(data: unknown) {
-  const fetch = vi.fn(async (_url: URL, _init?: RequestInit) => Response.json(data));
-  vi.stubGlobal("fetch", fetch);
-  return fetch;
-}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -90,56 +82,5 @@ describe("fetchRates", () => {
 
     expect(await fetchRates("", "2026-03-03")).toEqual({});
     expect(fetch).not.toHaveBeenCalled();
-  });
-});
-
-describe("trade rates", () => {
-  it("fetches from earliest open date to latest close date (plus a week on both sides)", async () => {
-    // only the edges of the range are known, so every trade rate is estimated between them
-    const fetch = stubFetch([
-      { cc: "USD", exchangedate: "19.05.2020", rate_per_unit: 27 },
-      { cc: "USD", exchangedate: "10.03.2026", rate_per_unit: 43 },
-    ]);
-    const trades = extract(loadFixture("files/qqq.htm"));
-
-    const trades_with_rates = await fetchTradeRates(trades);
-
-    expect(fetch.mock.calls[0]?.[0].toString()).toBe(ratesUrl("2020-05-19", "2026-03-10").toString());
-    expect(trades_with_rates.every((t) => t.open_rate === 35 && t.open_rate_estimated && t.close_rate === 35 && t.close_rate_estimated)).toBe(true);
-  });
-
-  it("does not fetch without trades", async () => {
-    const fetch = stubFetch(nbuResponse);
-
-    expect(await fetchTradeRates([])).toEqual([]);
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it("assigns open rate by open date and close rate by close date", () => {
-    const trades = extract(loadFixture("files/qqq.htm"));
-    const buyback = trades.find((t) => t.symbol === "QQQ" && t.is_short);
-    if (!buyback) {
-      throw new Error("buyback not found");
-    }
-
-    const [trade] = withRates([buyback], { "2026-03-02": 41.5, "2026-03-03": 41.6123 });
-
-    expect(trade).toMatchObject({ open_rate: 41.5, open_rate_estimated: false, close_rate: 41.6123, close_rate_estimated: false });
-  });
-
-  it("marks estimated rates", () => {
-    const trades = extract(loadFixture("files/qqq.htm"));
-    const buyback = trades.find((t) => t.symbol === "QQQ" && t.is_short);
-    if (!buyback) {
-      throw new Error("buyback not found");
-    }
-
-    const [trade] = withRates([buyback], { "2026-03-01": 41.0, "2026-03-03": 41.6, "2026-03-04": 41.8 });
-
-    expect(trade).toMatchObject({ open_rate: 41.3, open_rate_estimated: true, close_rate: 41.6, close_rate_estimated: false });
-  });
-
-  it("fails when rate can not be estimated", () => {
-    expect(() => withRates(extract(loadFixture("files/qqq.htm")), {})).toThrow("Немає курсу НБУ на 2020-05-26");
   });
 });

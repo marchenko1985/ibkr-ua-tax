@@ -1,7 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { enrich } from "./enrich";
 import { extract, type Trade } from "./extract";
-import { withRates } from "./fetchRates";
 import { loadFixture } from "./fixture";
 
 // Fake rates, different per date so a mixed up open/close rate is visible
@@ -24,7 +23,7 @@ describe("enrich qqq.htm", () => {
   let trades: Trade[];
 
   beforeAll(() => {
-    trades = enrich(withRates(extract(loadFixture("files/qqq.htm")), qqqRates));
+    trades = enrich(extract(loadFixture("files/qqq.htm")), qqqRates);
   });
 
   it("long stock lot: expenses at open rate, income at close rate", () => {
@@ -88,5 +87,31 @@ describe("enrich qqq.htm", () => {
     for (const trade of trades.filter((t) => !t.is_assignment)) {
       expect(trade.realized_usd).toBeCloseTo(trade.open_realized, 6);
     }
+  });
+});
+
+describe("enrich rates", () => {
+  function buyback() {
+    const trade = extract(loadFixture("files/qqq.htm")).find((t) => t.symbol === "QQQ" && t.is_short);
+    if (!trade) {
+      throw new Error("buyback not found");
+    }
+    return trade;
+  }
+
+  it("assigns open rate by open date and close rate by close date", () => {
+    const [trade] = enrich([buyback()], { "2026-03-02": 41.5, "2026-03-03": 41.6123 });
+
+    expect(trade).toMatchObject({ open_rate: 41.5, open_rate_estimated: false, close_rate: 41.6123, close_rate_estimated: false });
+  });
+
+  it("marks estimated rates", () => {
+    const [trade] = enrich([buyback()], { "2026-03-01": 41.0, "2026-03-03": 41.6, "2026-03-04": 41.8 });
+
+    expect(trade).toMatchObject({ open_rate: 41.3, open_rate_estimated: true, close_rate: 41.6, close_rate_estimated: false });
+  });
+
+  it("fails when rate can not be estimated", () => {
+    expect(() => enrich(extract(loadFixture("files/qqq.htm")), {})).toThrow("Немає курсу НБУ на 2020-05-26");
   });
 });

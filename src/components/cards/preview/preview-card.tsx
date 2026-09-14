@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
+import type { Statement } from "@/lib/statement";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "../../ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
 
-export function PreviewCard({ document }: { document: Document | null | undefined }) {
-  if (!document) {
-    return null;
-  }
+export function PreviewCard({ statement }: { statement: Statement }) {
+  const { document } = statement;
 
   const period = document.querySelector("p.text-title span")?.textContent; // translate month names
   const generated = Array.from(document.querySelectorAll("p.text-center.text-gray"))

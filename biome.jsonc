@@ -132,18 +132,9 @@
       }
     },
     {
-      // TODO: temporary, remove when the component is split into smaller ones
-      "includes": ["src/components/trades-card.tsx"],
-      "linter": {
-        "rules": {
-          "complexity": { "noExcessiveCognitiveComplexity": "off" }
-        }
-      }
-    },
-    {
       // TODO: temporary, remove when the component is reworked; renders static rows copied
       // from the statement, they are never reordered, so index keys are harmless for now
-      "includes": ["src/components/preview-card.tsx"],
+      "includes": ["src/components/cards/preview/preview-card.tsx"],
       "linter": {
         "rules": {
           "suspicious": { "noArrayIndexKey": "off" }

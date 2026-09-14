@@ -1,59 +1,15 @@
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { type Dividend, extractDividends, withDividendRates } from "@/lib/dividends";
-import { fetchRates } from "@/lib/rates";
+import { useMemo } from "react";
+import type { Dividend } from "@/lib/dividends";
+import type { Statement } from "@/lib/statement";
 import { dividendsTotals } from "@/lib/totals";
 import { cn } from "@/lib/utils";
-import { ErrorCard } from "./error-card";
-import { EstimatedRateHint } from "./estimated-rate-hint";
-import { EstimatedRatesCard } from "./estimated-rates-card";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { EstimatedRateHint } from "../../estimated-rate-hint";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "../../ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
-export function DividendsCard({ document }: { document: Document | null | undefined }) {
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<Error | null>(null);
-  const [dividends, setDividends] = useState<Dividend[]>([]);
-  const min_date = useMemo(() => [...dividends].sort((a, b) => a.date.localeCompare(b.date))[0]?.date, [dividends]);
-  const max_date = useMemo(() => [...dividends].sort((a, b) => b.date.localeCompare(a.date))[0]?.date, [dividends]);
-
-  useEffect(() => {
-    if (!document) {
-      return;
-    }
-
-    startTransition(async () => {
-      setError(null);
-      try {
-        const dividendsWithoutRates = extractDividends(document);
-        const fromDate = dividendsWithoutRates.sort((a, b) => a.date.localeCompare(b.date))[0]?.date;
-        const toDate = dividendsWithoutRates.sort((a, b) => b.date.localeCompare(a.date))[0]?.date;
-        const rates = await fetchRates(fromDate ?? "", toDate ?? "");
-        setDividends(withDividendRates(dividendsWithoutRates, rates));
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
-      }
-    });
-  }, [document]);
-
-  if (!document) {
-    return null;
-  }
-
-  if (isPending) {
-    return (
-      <Card className="print:hidden">
-        <CardHeader>
-          <CardTitle>Дивіденди</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">Завантаження...</CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return <ErrorCard error={error} />;
-  }
+export function DividendsCard({ statement }: { statement: Statement }) {
+  const { dividends } = statement;
 
   if (dividends.length === 0) {
     return (
@@ -66,21 +22,20 @@ export function DividendsCard({ document }: { document: Document | null | undefi
     );
   }
 
+  const dates = dividends.map((div) => div.date).sort((a, b) => a.localeCompare(b));
+
   return (
-    <>
-      <EstimatedRatesCard title="курси для дивідендів" dates={dividends.filter((div) => div.rate_estimated).map((div) => div.date)} />
-      <Card className="print:hidden">
-        <CardHeader>
-          <CardTitle>Дивіденди</CardTitle>
-          <CardDescription>
-            Усього {dividends.length} активів нараховували дивіденди у проміжку між {min_date} та {max_date}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DividendsTable dividends={dividends} />
-        </CardContent>
-      </Card>
-    </>
+    <Card className="print:hidden">
+      <CardHeader>
+        <CardTitle>Дивіденди</CardTitle>
+        <CardDescription>
+          Усього {dividends.length} активів нараховували дивіденди у проміжку між {dates.at(0)} та {dates.at(-1)}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <DividendsTable dividends={dividends} />
+      </CardContent>
+    </Card>
   );
 }
 
@@ -136,7 +91,7 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
       </TableHeader>
       <TableBody>
         {dividends.map((div) => (
-          <TableRow key={`${div.date} ${div.description}`}>
+          <TableRow key={div.id}>
             <TableCell>{div.date}</TableCell>
             <TableCell>{div.identifier}</TableCell>
             <TableCell className="text-right">{div.amount}</TableCell>

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { extractDividends, withDividendRates } from "./dividends";
 import { enrich } from "./enrich";
 import { extract } from "./extract";
-import { withRates } from "./fetchRates";
 import { loadFixture } from "./fixture";
 import { dividendsTotals, tradesTotals } from "./totals";
 
@@ -46,7 +45,7 @@ const qqqRates = {
 };
 
 function taxableTrades(path: string, rates: Record<string, number>) {
-  const trades = enrich(withRates(extract(loadFixture(path)), rates));
+  const trades = enrich(extract(loadFixture(path)), rates);
   return trades.filter((t) => !(t.is_assignment || t.is_exercise));
 }
 
