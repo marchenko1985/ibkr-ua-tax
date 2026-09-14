@@ -1,5 +1,5 @@
 import type { Dividend } from "./dividends";
-import type { extract } from "./extract";
+import type { Trade } from "./extract";
 
 /** Personal income tax (ПДФО) on investment income */
 const PERSONAL_INCOME_TAX_RATE = 0.18;
@@ -12,7 +12,7 @@ const DIVIDENDS_TAX_RATE = 0.09;
  * Totals and taxes for closed positions.
  * Pass only taxable trades — assigned/exercised options must be excluded beforehand.
  */
-export function tradesTotals(trades: ReturnType<typeof extract>) {
+export function tradesTotals(trades: Trade[]) {
   const open_uah = trades.reduce((acc, trade) => acc + trade.open_uah, 0);
   const close_uah = trades.reduce((acc, trade) => acc + trade.close_uah, 0);
   const realized_uah = trades.reduce((acc, trade) => acc + trade.realized_uah, 0);

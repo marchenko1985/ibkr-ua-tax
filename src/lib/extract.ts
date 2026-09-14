@@ -33,6 +33,8 @@ export function extract(document: Document) {
     .sort((a, b) => a.close_date.localeCompare(b.close_date));
 }
 
+export type Trade = ReturnType<typeof extract>[number];
+
 const CLOSED_LOT = "Closed Lot:";
 
 /**

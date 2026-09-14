@@ -2,9 +2,7 @@
 import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
 import { expect } from "vitest";
-import type { extract } from "./extract";
-
-type Trade = ReturnType<typeof extract>[number];
+import type { Trade } from "./extract";
 
 export function loadFixture(path: string): Document {
   return new JSDOM(readFileSync(path, "utf-8")).window.document;

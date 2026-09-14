@@ -1,10 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { enrich } from "./enrich";
-import { extract } from "./extract";
+import { extract, type Trade } from "./extract";
 import { withRates } from "./fetchRates";
 import { loadFixture } from "./fixture";
-
-type Trade = ReturnType<typeof enrich>[number];
 
 // Fake rates, different per date so a mixed up open/close rate is visible
 const qqqRates = {

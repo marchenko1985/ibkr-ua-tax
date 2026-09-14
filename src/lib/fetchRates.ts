@@ -1,7 +1,7 @@
-import type { extract } from "./extract";
+import type { Trade } from "./extract";
 import { fetchRates as fetchRatesRange, rateFor } from "./rates";
 
-export async function fetchRates(transactions: ReturnType<typeof extract>) {
+export async function fetchRates(transactions: Trade[]) {
   const [first] = transactions;
   if (!first) {
     return [];
@@ -19,7 +19,7 @@ export async function fetchRates(transactions: ReturnType<typeof extract>) {
   return withRates(transactions, rates);
 }
 
-export function withRates(transactions: ReturnType<typeof extract>, rates: Record<string, number>) {
+export function withRates(transactions: Trade[], rates: Record<string, number>) {
   return transactions.map((item) => {
     const open = rateFor(rates, item.open_date);
     const close = rateFor(rates, item.close_date);

@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState, useTransition } from "react";
 import { enrich } from "@/lib/enrich";
-import { extract } from "@/lib/extract";
+import { extract, type Trade } from "@/lib/extract";
 import { fetchRates } from "@/lib/fetchRates";
 import { tradesTotals } from "@/lib/totals";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 export function TradesCard({ document }: { document: Document | null | undefined }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<Error | null>(null);
-  const [trades, setTrades] = useState<ReturnType<typeof extract>>([]);
+  const [trades, setTrades] = useState<Trade[]>([]);
   const min_close_date = useMemo(() => [...trades].sort((a, b) => a.close_date.localeCompare(b.close_date))[0]?.close_date, [trades]);
   const max_close_date = useMemo(() => [...trades].sort((a, b) => b.close_date.localeCompare(a.close_date))[0]?.close_date, [trades]);
 
@@ -135,7 +135,7 @@ export function TradesCard({ document }: { document: Document | null | undefined
   );
 }
 
-function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extract>; taxableTrades: ReturnType<typeof extract> }) {
+function TradesTable({ trades, taxableTrades }: { trades: Trade[]; taxableTrades: Trade[] }) {
   const id = useId();
   const [search, setSearch] = useState("");
   const [showStocks, setShowStocks] = useState(true);

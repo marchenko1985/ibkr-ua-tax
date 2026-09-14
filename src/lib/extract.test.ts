@@ -1,8 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { extract } from "./extract";
+import { extract, type Trade } from "./extract";
 import { expectLotsAddUpToCloseRows, loadFixture, parseHtml } from "./fixture";
-
-type Trade = ReturnType<typeof extract>[number];
 
 function find(trades: Trade[], symbol: string): Trade {
   const trade = trades.find((t) => t.symbol === symbol);
