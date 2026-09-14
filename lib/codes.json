@@ -32,7 +32,11 @@
   { "code": "DT", "description": "Discounted Trade", "translation": "Угода зі знижкою" },
   { "code": "Po", "description": "Interest or Dividend Accrual Posting", "translation": "Нарахування відсотків або дивідендів" },
   { "code": "De", "description": "Delivery or Conversion Action", "translation": "Поставка або конвертація" },
-  { "code": "Pr", "description": "Part or all of this transaction was executed by the Exchange as a Crossing by IB against an IB affiliate and is therefore classified as a Principal and not an agency trade", "translation": "Угода (частково або повністю) виконана біржею як кросинг IB проти афілійованої сторони (principal угода)" },
+  {
+    "code": "Pr",
+    "description": "Part or all of this transaction was executed by the Exchange as a Crossing by IB against an IB affiliate and is therefore classified as a Principal and not an agency trade",
+    "translation": "Угода (частково або повністю) виконана біржею як кросинг IB проти афілійованої сторони (principal угода)"
+  },
   { "code": "ETF", "description": "ETF Creation/Redemption", "translation": "Створення/погашення ETF" },
   { "code": "R", "description": "Dividend Reinvestment", "translation": "Реінвестування дивідендів" },
   { "code": "Ep", "description": "Resulted from an Expired Position", "translation": "Виникло через експірацію позиції" },
@@ -42,7 +46,11 @@
   { "code": "FP", "description": "The fractional portion of this trade was executed against IB or an affiliate.", "translation": "Дробова частина угоди виконана проти IB або афілійованої сторони" },
   { "code": "RP", "description": "IB acted as agent for the fractional share portion of this trade, which was executed by an IB affiliate as riskless principal.", "translation": "IB діяв як агент для дробової частини угоди, яка була виконана афілійованою стороною IB як безризикова угода" },
   { "code": "FPA", "description": "The fractional portion of this trade was executed against IB or an affiliate. IB acted as agent for the whole share portion of this trade.", "translation": "Дробова частина виконана проти IB; IB діяв як агент для повних акцій" },
-  { "code": "RPA", "description": "IB acted as agent for both the fractional share portion and the whole share portion of this trade; the fractional share portion was executed by an IB Affiliate as riskless principal.", "translation": "IB діяв як агент для дробової та повної частини угоди; дробова частина виконана афілійованою стороною IB як безризикова угода" },
+  {
+    "code": "RPA",
+    "description": "IB acted as agent for both the fractional share portion and the whole share portion of this trade; the fractional share portion was executed by an IB Affiliate as riskless principal.",
+    "translation": "IB діяв як агент для дробової та повної частини угоди; дробова частина виконана афілійованою стороною IB як безризикова угода"
+  },
   { "code": "G", "description": "Trade in Guaranteed Account Segment", "translation": "Угода в сегменті гарантованого рахунку" },
   { "code": "Rb", "description": "Rebill", "translation": "Перевиставлення рахунку" },
   { "code": "GEA", "description": "Exercise or Assignment resulting from offsetting positions", "translation": "Виконання або призначення через взаємозалік позицій" },

@@ -126,7 +126,10 @@ describe("extract amd.htm", () => {
     });
 
     it("partial execution code", () => {
-      expect(stockTrades.map((t) => t.close_codes)).toEqual([["C", "P"], ["C", "P"]]);
+      expect(stockTrades.map((t) => t.close_codes)).toEqual([
+        ["C", "P"],
+        ["C", "P"],
+      ]);
     });
   });
 

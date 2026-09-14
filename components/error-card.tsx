@@ -6,10 +6,12 @@ export function ErrorCard({ error }: { error: Error | null | undefined }) {
   const message = error instanceof Error ? error.message : String(error);
   if (!message) return null;
 
-  return <Card className="print:hidden">
-    <CardHeader>
-      <CardTitle>Сталася помилка</CardTitle>
-    </CardHeader>
-    <CardContent>{message}</CardContent>
-  </Card>
+  return (
+    <Card className="print:hidden">
+      <CardHeader>
+        <CardTitle>Сталася помилка</CardTitle>
+      </CardHeader>
+      <CardContent>{message}</CardContent>
+    </Card>
+  );
 }

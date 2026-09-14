@@ -1,0 +1,139 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+
+  // Strategy: start from EVERY stable rule ("preset": "all") and switch off only what
+  // does not apply to this project or was decided against. New Biome rules therefore
+  // arrive enabled by default, and every exception below carries its reason.
+
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+
+  "files": {
+    "ignoreUnknown": true,
+    // components/ui — vendored shadcn components, kept byte-identical to the registry
+    // so re-adding them produces clean diffs.
+    // files — anonymized IBKR statements used as test fixtures.
+    "includes": ["**", "!components/ui", "!files"]
+  },
+
+  "formatter": {
+    "useEditorconfig": true,
+    // Biome's maximum. Long JSX lines and tables stay on one line.
+    "lineWidth": 320
+  },
+
+  "css": {
+    // Tailwind v4 @theme / @apply / @custom-variant in index.css
+    "parser": { "tailwindDirectives": true }
+  },
+
+  "linter": {
+    "domains": {
+      "react": "all",
+      "project": "all",
+      "test": "all"
+    },
+    "rules": {
+      "preset": "all",
+
+      "complexity": {
+        // Defaults are too tight (50 lines, complexity 15, 4 params); relaxed but still
+        // forcing a split once a function stops fitting in a reader's head.
+        "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 80, "skipBlankLines": true } },
+        "noExcessiveCognitiveComplexity": { "level": "error", "options": { "maxAllowedComplexity": 20 } },
+        "useMaxParams": { "level": "error", "options": { "max": 5 } }
+      },
+
+      "correctness": {
+        // Solid / Qwik rules — not our framework
+        "noSolidDestructuredProps": "off",
+        "useQwikValidLexicalScope": "off",
+        // Meant for native Node ESM; Vite resolves extensionless imports
+        "useImportExtensions": "off"
+      },
+
+      "performance": {
+        // Solid / Next.js rules — not our framework
+        "useSolidForComponent": "off",
+        "noImgElement": "off"
+      },
+
+      "suspicious": {
+        // Solid rule, it forbids React's className
+        "noReactSpecificProps": "off"
+      },
+
+      "style": {
+        "noExcessiveLinesPerFile": { "level": "error", "options": { "maxLines": 400, "skipBlankLines": true } },
+        // Data fields are snake_case (open_basis, realized_uah, ...) on purpose — decided against renaming
+        "useNamingConvention": "off",
+        // Ternary is the normal JSX idiom for conditional rendering
+        "noTernary": "off",
+        // i18n rule; the UI is Ukrainian-only with literal text
+        "noJsxLiterals": "off",
+        "useNumericSeparators": "off"
+      },
+
+      // Experimental rules picked explicitly (the preset does not include nursery)
+      "nursery": {
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "useAwaitThenable": "error",
+        "noUnsafePlusOperands": "error",
+        "useExhaustiveSwitchCases": "error",
+        "useNullishCoalescing": "error",
+        "noUselessTypeConversion": "error",
+        "noLoopFunc": "error",
+        "noExcessiveNestedCallbacks": "error",
+        "noUnsafeTypeAssertion": "error",
+        "useSortedClasses": "error"
+      }
+    }
+  },
+
+  "overrides": [
+    {
+      // Tests and test helpers: long describe blocks, literal expected numbers and
+      // realistic identifiers are the point here; they run in Node.
+      "includes": ["**/*.test.ts", "lib/fixture.ts"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off",
+            "noExcessiveCognitiveComplexity": "off",
+            "useMaxParams": "off"
+          },
+          "style": {
+            "noExcessiveLinesPerFile": "off",
+            "noMagicNumbers": "off"
+          },
+          "nursery": {
+            "noExcessiveNestedCallbacks": "off"
+          },
+          "security": {
+            "noSecrets": "off"
+          },
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "suspicious": {
+            "noMisplacedAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      // Vite requires a default export and runs in Node
+      "includes": ["vite.config.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noDefaultExport": "off" },
+          "correctness": { "noNodejsModules": "off" }
+        }
+      }
+    }
+  ]
+}

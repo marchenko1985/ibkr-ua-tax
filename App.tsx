@@ -12,15 +12,16 @@ export function App() {
   const [doc, setDoc] = useState<Document | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  return <>
-    <Header />
-    {!doc && !error && <WhyCard />}
-    <FileInputCard setDoc={setDoc} setError={setError} />
-    {!doc && !error && <HowCard />}
-    <ErrorCard error={error} />
-    <TradesCard document={doc} />
-    <DividendsCard document={doc} />
-    <PreviewCard document={doc} />
-  </>
+  return (
+    <>
+      <Header />
+      {!doc && !error && <WhyCard />}
+      <FileInputCard setDoc={setDoc} setError={setError} />
+      {!doc && !error && <HowCard />}
+      <ErrorCard error={error} />
+      <TradesCard document={doc} />
+      <DividendsCard document={doc} />
+      <PreviewCard document={doc} />
+    </>
+  );
 }
-

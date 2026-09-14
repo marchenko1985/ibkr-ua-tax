@@ -6,15 +6,21 @@ export function EstimatedRatesCard({ title, dates }: { title: string; dates: str
   const unique = Array.from(new Set(dates)).sort();
   if (unique.length === 0) return null;
 
-  return <Card className="print:hidden">
-    <CardHeader>
-      <CardTitle>Увага: {title}</CardTitle>
-      <CardDescription>Для деяких дат курс НБУ відсутній, тож його було оцінено.</CardDescription>
-    </CardHeader>
-    <CardContent className="space-y-2">
-      <p>{estimatedRateNote}.</p>
-      <p>Дати: <b>{unique.join(", ")}</b></p>
-      <p>Такі курси в таблиці позначені <span className="text-yellow-600">жовтим кольором та зірочкою*</span>. Перевірте їх перед поданням звіту.</p>
-    </CardContent>
-  </Card>
+  return (
+    <Card className="print:hidden">
+      <CardHeader>
+        <CardTitle>Увага: {title}</CardTitle>
+        <CardDescription>Для деяких дат курс НБУ відсутній, тож його було оцінено.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <p>{estimatedRateNote}.</p>
+        <p>
+          Дати: <b>{unique.join(", ")}</b>
+        </p>
+        <p>
+          Такі курси в таблиці позначені <span className="text-yellow-600">жовтим кольором та зірочкою*</span>. Перевірте їх перед поданням звіту.
+        </p>
+      </CardContent>
+    </Card>
+  );
 }
