@@ -146,3 +146,56 @@ export function creditCapturedStats(setups: readonly Setup[]): CreditCapturedSta
     totalRealizedPnl,
   };
 }
+
+export interface DiffRow {
+  label: string;
+  baseline: number | null;
+  recent: number | null;
+  /** recent - baseline */
+  delta: number | null;
+  /** direction of improvement, colors the delta */
+  higherIsBetter: boolean;
+  format: "usd" | "percent" | "ratio";
+}
+
+export interface RecentVsBaseline {
+  recentCount: number;
+  baselineCount: number;
+  rows: DiffRow[];
+}
+
+/**
+ * Last `recentN` setups (by close time) compared with up to `baselineN` setups before them.
+ * No rows when there are fewer than `recentN` setups.
+ */
+export function recentVsBaseline(setups: readonly Setup[], recentN = RECENT_SETUPS, baselineN = BASELINE_SETUPS): RecentVsBaseline {
+  const ordered = [...setups].sort((a, b) => a.closedAt.localeCompare(b.closedAt));
+  if (ordered.length < recentN) {
+    return { recentCount: ordered.length, baselineCount: 0, rows: [] };
+  }
+
+  const recentStart = ordered.length - recentN;
+  const recent = summarize(ordered.slice(recentStart));
+  const baselineSetups = ordered.slice(Math.max(0, recentStart - baselineN), recentStart);
+  const baseline = summarize(baselineSetups);
+  const hasBaseline = baselineSetups.length > 0;
+
+  const row = (label: string, pick: (s: Summary) => number | null, format: DiffRow["format"]): DiffRow => {
+    const recentValue = finiteOrNull(pick(recent));
+    const baselineValue = hasBaseline ? finiteOrNull(pick(baseline)) : null;
+    return { label, recent: recentValue, baseline: baselineValue, delta: recentValue === null || baselineValue === null ? null : recentValue - baselineValue, higherIsBetter: true, format };
+  };
+
+  return {
+    recentCount: recentN,
+    baselineCount: baselineSetups.length,
+    rows: [row("Чистий P/L", (s) => s.netPnl, "usd"), row("Середній P/L", (s) => (s.count > 0 ? s.netPnl / s.count : null), "usd"), row("Win rate", (s) => s.winRate, "percent"), row("Profit factor", (s) => s.profitFactor, "ratio"), row("Expectancy", (s) => s.expectancy, "usd")],
+  };
+}
+
+const RECENT_SETUPS = 20;
+const BASELINE_SETUPS = 100;
+
+function finiteOrNull(value: number | null) {
+  return value !== null && Number.isFinite(value) ? value : null;
+}

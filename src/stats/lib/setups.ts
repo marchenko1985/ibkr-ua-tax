@@ -68,7 +68,7 @@ type DteBucket = (typeof DTE_BUCKETS)[number]["label"];
 type LegCountBucket = (typeof LEG_COUNT_BUCKETS)[number]["label"];
 
 /** Buckets in display order, a value goes to the first bucket with max >= value */
-const HOLDING_DAYS_BUCKETS = [
+export const HOLDING_DAYS_BUCKETS = [
   { label: "same-day", max: 0 },
   { label: "1-7d", max: 7 },
   { label: "8-21d", max: 21 },
@@ -76,7 +76,7 @@ const HOLDING_DAYS_BUCKETS = [
   { label: "46d+", max: Number.POSITIVE_INFINITY },
 ] as const;
 
-const DTE_BUCKETS = [
+export const DTE_BUCKETS = [
   { label: "0", max: 0 },
   { label: "1-7", max: 7 },
   { label: "8-21", max: 21 },

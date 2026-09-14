@@ -41,6 +41,22 @@ export function formatRatio(n: number | null): string {
   return Number.isFinite(n) ? dec2.format(n) : "∞";
 }
 
+/** compact signed USD for sentences: "+$500", "-$1.2k", "+$12k" */
+export function formatSignedUsdShort(n: number | null): string {
+  if (!isNumber(n)) {
+    return EMPTY;
+  }
+  const abs = Math.abs(n);
+  const sign = n < 0 ? "-" : "+";
+  if (abs >= THOUSAND) {
+    return `${sign}$${(abs / THOUSAND).toFixed(abs >= TEN_THOUSAND ? 0 : 1)}k`;
+  }
+  return `${sign}$${abs.toFixed(0)}`;
+}
+
+const THOUSAND = 1000;
+const TEN_THOUSAND = 10_000;
+
 /** days, "12.5 дн." */
 export function formatDays(n: number | null): string {
   return isNumber(n) ? `${dec1.format(n)} дн.` : EMPTY;
