@@ -12,3 +12,5 @@ Key idea is that instead of dealing with flex reports we will parse actions stat
 - dividends: confirm the law (likely 18% + 5% on gross for foreign dividends, not 9% on net); if confirmed, remove withholding tax from report, instructions and calculations
 - missing NBU rate for a date: fail loudly or interpolate between sibling dates
 - support EUR (and other currencies) — currently everything assumes USD
+- more anonymized fixtures in `files/` from short-period real reports: correct settings, wrong columns (no "Realized P/L Only"), not closing trades only, etc.
+- update shadcn components — shadcn moved from radix-ui to base-ui
