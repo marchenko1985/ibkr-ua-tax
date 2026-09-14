@@ -5,6 +5,7 @@ import { fetchRates } from "@/lib/fetchRates";
 import { enrich } from "@/lib/enrich";
 import { tradesTotals } from "@/lib/totals";
 import { ErrorCard } from "./error-card";
+import { EstimatedRatesCard, estimatedRateNote } from "./estimated-rates-card";
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
@@ -71,7 +72,10 @@ export function TradesCard({ document }: { document: Document | null | undefined
   }
 
 
+  const estimatedRateDates = taxableTrades.flatMap(t => [t.open_rate_estimated ? t.open_date : "", t.close_rate_estimated ? t.close_date : ""]).filter(Boolean);
+
   return <>
+    <EstimatedRatesCard title="курси для угод" dates={estimatedRateDates} />
     {trades.some(trade => trade.close_commfee > 10) && <Card>
       <CardHeader>
         <CardTitle>Увага</CardTitle>
@@ -377,21 +381,23 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 </TableCell>
                 <TableCell className="border-l">
                   <Tooltip>
-                    <TooltipTrigger>{trade.open_rate.toFixed(2)}</TooltipTrigger>
+                    <TooltipTrigger className={cn(trade.open_rate_estimated && "text-yellow-600")}>{trade.open_rate.toFixed(2)}{trade.open_rate_estimated && "*"}</TooltipTrigger>
                     <TooltipContent>
                       <p>Курс долара на дату відкриття позиції</p>
                       <p>Дата: {trade.open_date}</p>
                       <p>Курс: {trade.open_rate}</p>
+                      {trade.open_rate_estimated && <p className="text-yellow-500 text-xs mt-1">⚠️ {estimatedRateNote}</p>}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Tooltip>
-                    <TooltipTrigger>{trade.close_rate.toFixed(2)}</TooltipTrigger>
+                    <TooltipTrigger className={cn(trade.close_rate_estimated && "text-yellow-600")}>{trade.close_rate.toFixed(2)}{trade.close_rate_estimated && "*"}</TooltipTrigger>
                     <TooltipContent>
                       <p>Курс долара на дату закриття позиції</p>
                       <p>Дата: {trade.close_date}</p>
                       <p>Курс: {trade.close_rate}</p>
+                      {trade.close_rate_estimated && <p className="text-yellow-500 text-xs mt-1">⚠️ {estimatedRateNote}</p>}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>

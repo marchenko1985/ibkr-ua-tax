@@ -32,6 +32,7 @@ describe("extractDividends", () => {
         tax: 0,
         income: 3.45,
         rate: 0,
+        rate_estimated: false,
         income_uah: 0,
       },
     ]);
@@ -90,7 +91,7 @@ describe("extractDividends", () => {
       withholding: [],
     });
 
-    expect(extractDividends(document)[0].amount).toBe(1026);
+    expect(extractDividends(document)[0]?.amount).toBe(1026);
   });
 });
 
@@ -100,16 +101,24 @@ describe("withDividendRates", () => {
 
     const [dividend] = withDividendRates(dividends, { "2026-02-26": 43.0, "2026-02-27": 43.5 });
 
-    expect(dividend.rate).toBe(43.5);
-    expect(dividend.income_uah).toBeCloseTo(3.45 * 43.5, 6); // 150.075
+    expect(dividend?.rate).toBe(43.5);
+    expect(dividend?.rate_estimated).toBe(false);
+    expect(dividend?.income_uah).toBeCloseTo(3.45 * 43.5, 6); // 150.075
   });
 
-  it("missing rate gives 0", () => {
+  it("missing rate is estimated from sibling days", () => {
     const dividends = extractDividends(loadFixture("files/qqq.htm"));
 
-    const [dividend] = withDividendRates(dividends, {});
+    const [dividend] = withDividendRates(dividends, { "2026-02-26": 43.0, "2026-03-02": 44.0 });
 
-    expect(dividend.rate).toBe(0);
-    expect(dividend.income_uah).toBe(0);
+    expect(dividend?.rate).toBe(43.5);
+    expect(dividend?.rate_estimated).toBe(true);
+    expect(dividend?.income_uah).toBeCloseTo(3.45 * 43.5, 6);
+  });
+
+  it("fails when rate can not be estimated", () => {
+    const dividends = extractDividends(loadFixture("files/qqq.htm"));
+
+    expect(() => withDividendRates(dividends, {})).toThrow("Немає курсу НБУ на 2026-02-27");
   });
 });

@@ -1,3 +1,5 @@
+import { rateFor } from "./rates";
+
 /**
  * Parses dividends from Interactive Brokers statements report.
  *
@@ -26,6 +28,7 @@ export function extractDividends(document: Document) {
       ...div,
       income: div.amount + div.tax, // note we are using plus here - because tax is negative
       rate: 0,
+      rate_estimated: false,
       income_uah: 0,
     }));
 }
@@ -33,9 +36,13 @@ export function extractDividends(document: Document) {
 export type Dividend = ReturnType<typeof extractDividends>[number];
 
 export function withDividendRates(dividends: Dividend[], rates: Record<string, number>) {
-  return dividends.map((div) => ({
-    ...div,
-    rate: rates[div.date] ?? 0,
-    income_uah: div.income * (rates[div.date] ?? 0),
-  }));
+  return dividends.map((div) => {
+    const { rate, estimated } = rateFor(rates, div.date);
+    return {
+      ...div,
+      rate,
+      rate_estimated: estimated,
+      income_uah: div.income * rate,
+    };
+  });
 }

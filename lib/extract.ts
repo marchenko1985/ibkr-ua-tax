@@ -85,7 +85,9 @@ export function extract(document: Document) {
       // ---
 
       open_rate: 0,
+      open_rate_estimated: false,
       close_rate: 0,
+      close_rate_estimated: false,
 
       // ---
 

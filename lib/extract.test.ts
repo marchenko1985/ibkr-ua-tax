@@ -33,9 +33,8 @@ describe("extract amd.htm", () => {
   });
 
   it("sorted by close_date ascending", () => {
-    for (let i = 1; i < trades.length; i++) {
-      expect(trades[i].close_date >= trades[i - 1].close_date).toBe(true);
-    }
+    const dates = trades.map((t) => t.close_date);
+    expect(dates).toEqual([...dates].sort());
   });
 
   it("lots add up to closing rows", () => {
@@ -123,12 +122,11 @@ describe("extract amd.htm", () => {
     });
 
     it("positive realized P/L", () => {
-      expect(stockTrades[0].open_realized).toBe(108.38);
-      expect(stockTrades[1].open_realized).toBe(1250.37);
+      expect(stockTrades.map((t) => t.open_realized)).toEqual([108.38, 1250.37]);
     });
 
     it("partial execution code", () => {
-      expect(stockTrades[0].close_codes).toEqual(["C", "P"]);
+      expect(stockTrades.map((t) => t.close_codes)).toEqual([["C", "P"], ["C", "P"]]);
     });
   });
 

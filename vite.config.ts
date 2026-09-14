@@ -5,17 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   base: "/ibkr-ua-tax/",
-  plugins: [
-    react({
-      babel: {
-        plugins: [["babel-plugin-react-compiler"]],
-      },
-    }),
-    tailwindcss(),
-  ],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./"),
+      "@": path.resolve(import.meta.dirname, "./"),
     },
   },
 });

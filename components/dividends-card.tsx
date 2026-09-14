@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { ErrorCard } from "./error-card";
+import { EstimatedRatesCard, estimatedRateNote } from "./estimated-rates-card";
+import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 import { extractDividends, withDividendRates, type Dividend } from "@/lib/dividends";
@@ -24,7 +26,7 @@ export function DividendsCard({ document }: { document: Document | null | undefi
         const dividendsWithoutRates = extractDividends(document)
         const fromDate = dividendsWithoutRates.sort((a, b) => a.date.localeCompare(b.date))[0]?.date;
         const toDate = dividendsWithoutRates.sort((a, b) => b.date.localeCompare(a.date))[0]?.date;
-        const rates = await fetchRates(fromDate, toDate)
+        const rates = await fetchRates(fromDate ?? "", toDate ?? "")
         setDividends(withDividendRates(dividendsWithoutRates, rates))
       } catch (error) {
         setError(error as Error);
@@ -60,7 +62,9 @@ export function DividendsCard({ document }: { document: Document | null | undefi
     </Card>
   }
 
-  return <Card className="print:hidden">
+  return <>
+  <EstimatedRatesCard title="курси для дивідендів" dates={dividends.filter(div => div.rate_estimated).map(div => div.date)} />
+  <Card className="print:hidden">
     <CardHeader>
       <CardTitle>Дивіденди</CardTitle>
       <CardDescription>Усього {dividends.length} активів нараховували дивіденди у проміжку між {min_date} та {max_date}</CardDescription>
@@ -69,6 +73,7 @@ export function DividendsCard({ document }: { document: Document | null | undefi
       <DividendsTable dividends={dividends} />
     </CardContent>
   </Card>
+  </>
 }
 
 function DividendsTable({ dividends }: { dividends: Dividend[] }) {
@@ -130,11 +135,12 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
           <TableCell className="text-right">{div.income.toFixed(2)}</TableCell>
           <TableCell className="border-l text-right">
             <Tooltip>
-              <TooltipTrigger>{div.rate.toFixed(2)}</TooltipTrigger>
+              <TooltipTrigger className={cn(div.rate_estimated && "text-yellow-600")}>{div.rate.toFixed(2)}{div.rate_estimated && "*"}</TooltipTrigger>
               <TooltipContent>
                 <p>Курс долара на дату нарахування дивідендів</p>
                 <p>Дата: {div.date}</p>
                 <p>Курс: {div.rate}</p>
+                {div.rate_estimated && <p className="text-yellow-500 text-xs mt-1">⚠️ {estimatedRateNote}</p>}
               </TooltipContent>
             </Tooltip>
           </TableCell>

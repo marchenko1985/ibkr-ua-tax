@@ -3,13 +3,20 @@
     "moduleResolution": "bundler",
     "target": "ESNext",
     "module": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react-jsx",
-    "esModuleInterop": true,
+    "types": ["vite/client", "node"],
+    "noEmit": true,
     "skipLibCheck": true,
+    "isolatedModules": true,
     "strict": true,
-    "baseUrl": ".",
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist"]
 }

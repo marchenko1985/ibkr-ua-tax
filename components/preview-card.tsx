@@ -257,8 +257,8 @@ function translatePeriod(period: string | undefined) {
     "December": "Грудень",
   }
 
-  for (const en of Object.keys(months)) {
-    period = period.replaceAll(en, months[en])
+  for (const [en, uk] of Object.entries(months)) {
+    period = period.replaceAll(en, uk)
   }
 
   return period
@@ -288,8 +288,8 @@ function translateAccount(str: string | undefined) {
     "Base Currency": "Базова валюта"
   }
 
-  for (const en of Object.keys(accounts)) {
-    str = str.replaceAll(en, accounts[en])
+  for (const [en, uk] of Object.entries(accounts)) {
+    str = str.replaceAll(en, uk)
   }
 
   return str;

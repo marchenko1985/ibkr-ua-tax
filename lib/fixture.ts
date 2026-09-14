@@ -28,10 +28,12 @@ export function expectLotsAddUpToCloseRows(trades: Trade[]) {
     groups.set(key, [...(groups.get(key) ?? []), trade]);
   }
   for (const [key, lots] of groups) {
+    const close = lots[0];
+    if (!close) continue;
     const basis = lots.reduce((acc, lot) => acc + lot.open_basis, 0);
     const realized = lots.reduce((acc, lot) => acc + lot.open_realized, 0);
     const tolerance = 0.01 * lots.length + 1e-9;
-    expect(Math.abs(basis + lots[0].close_basis), `basis of ${key}`).toBeLessThanOrEqual(tolerance);
-    expect(Math.abs(realized - lots[0].close_realized), `realized of ${key}`).toBeLessThanOrEqual(tolerance);
+    expect(Math.abs(basis + close.close_basis), `basis of ${key}`).toBeLessThanOrEqual(tolerance);
+    expect(Math.abs(realized - close.close_realized), `realized of ${key}`).toBeLessThanOrEqual(tolerance);
   }
 }
