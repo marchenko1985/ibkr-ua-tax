@@ -43,6 +43,10 @@ export function validateStatement(document: Document): Problem[] {
     problems.push({ setting: "Display Closing Trades Only?", expected: "Yes", reason: "у звіті є угоди відкриття позицій" });
   }
 
+  if (rows.some((row) => row.codes.includes("Ca"))) {
+    problems.push({ setting: "Display Canceled Trades?", expected: "No", reason: "у звіті є скасовані угоди" });
+  }
+
   // columns changed by a setting not recognized above
   const unexpected = headerRows.find((row) => row.join("|") !== TRADES_HEADERS.join("|"));
   if (problems.length === 0 && unexpected) {

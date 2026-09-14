@@ -7,6 +7,7 @@
     "format": "biome check --write",
     "typecheck": "tsc --noEmit",
     "anonymize": "node scripts/anonymize.ts",
+    "trim": "node scripts/trim.ts",
     "unused": "knip",
     "dedup": "npx -y jscpd .",
     "outdated": "npx -y npm-check-updates",

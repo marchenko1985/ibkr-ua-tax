@@ -53,6 +53,18 @@ describe("validateStatement", () => {
     expect(validateStatement(document)).toEqual([{ setting: "Section Configurations", expected: "як в інструкції", reason: "неочікувані стовпчики угод: Symbol, Date/Time, Exchange, Quantity, T. Price, Proceeds, Comm/Fee, Basis, Code, Realized P/L" }]);
   });
 
+  it("cancelled trades", () => {
+    // no real sample: a proper closing trade with its lot, plus a cancelled trade (code Ca)
+    const document = parseHtml(`<div id="tblTransactions_U1Body"><table>
+      <thead><tr><th>Symbol</th><th>Date/Time</th><th>Exchange</th><th>Quantity</th><th>T. Price</th><th>Proceeds</th><th>Comm/Fee</th><th>Basis</th><th>Realized P/L</th><th>Code</th></tr></thead>
+      <tr class="row-summary"><td>AAPL</td><td>2026-09-09, 14:19:01</td><td>NASDAQ</td><td>-10</td><td>1</td><td>10</td><td>0</td><td>-5</td><td>5</td><td>C</td></tr>
+      <tbody class="row-detail"><tr><td>Closed Lot:</td><td>2026-09-01</td><td></td><td>10</td><td>0.5</td><td></td><td></td><td>5</td><td>5</td><td>ST</td></tr></tbody>
+      <tr class="row-summary"><td>AAPL</td><td>2026-09-10, 10:00:00</td><td>NASDAQ</td><td>-10</td><td>1</td><td>10</td><td>0</td><td>-5</td><td>5</td><td>C;Ca</td></tr>
+    </table></div>`);
+
+    expect(validateStatement(document)).toEqual([{ setting: "Display Canceled Trades?", expected: "No", reason: "у звіті є скасовані угоди" }]);
+  });
+
   it("statement without trades section", () => {
     expect(validateStatement(parseHtml("<html></html>"))).toEqual([]);
   });
