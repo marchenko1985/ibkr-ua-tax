@@ -4,10 +4,15 @@ import { Insights } from "./cards/insights";
 import { KpiRow } from "./cards/kpi-row";
 import { KpiRowSecondary } from "./cards/kpi-row-secondary";
 import { OptionsKpiRow } from "./cards/options-kpi-row";
+import { PnlByStrategy } from "./cards/pnl-by-strategy";
 import { PnlCalendarHeatmap } from "./cards/pnl-calendar-heatmap";
 import { RecentVsBaseline } from "./cards/recent-vs-baseline";
 import { RollingMetrics } from "./cards/rolling-metrics";
 import { SectionHeader } from "./cards/section-header";
+import { StrategyDteHeatmap } from "./cards/strategy-dte-heatmap";
+import { StrategyFrontier } from "./cards/strategy-frontier";
+import { StrategyHoldingHeatmap } from "./cards/strategy-holding-heatmap";
+import { TradeScatter } from "./cards/trade-scatter";
 import { TraderProfile } from "./cards/trader-profile";
 import type { Setup } from "./lib/setups";
 
@@ -33,6 +38,15 @@ export function StatsCards({ setups }: { setups: readonly Setup[] }) {
       <RollingMetrics setups={setups} />
       <DrawdownEpisodes setups={setups} />
       <PnlCalendarHeatmap setups={setups} />
+
+      <SectionHeader title="Стратегії" description="Які стратегії приносять результат: P/L, співвідношення win rate і payoff, розподіл позицій та розрізи за DTE і тривалістю утримання." />
+      <div className="grid @4xl:grid-cols-2 grid-cols-1 gap-4">
+        <PnlByStrategy setups={setups} />
+        <StrategyFrontier setups={setups} />
+      </div>
+      <TradeScatter setups={setups} />
+      <StrategyDteHeatmap setups={setups} />
+      <StrategyHoldingHeatmap setups={setups} />
     </>
   );
 }
