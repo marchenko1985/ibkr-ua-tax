@@ -26,10 +26,27 @@ Wrong numbers in a tax report are worse than no numbers. So:
 ## Commands
 
 ```bash
-npm start            # dev server
-npm run build        # production build to dist/
-npm test             # vitest
+npm start              # dev server
+npm run build          # production build to dist/
+npm test               # vitest
+npm run lint           # biome: lint + formatting, warnings fail too
+npm run format         # biome auto-fix
+npm run typecheck      # tsc
+npm run unused         # knip: unused files, exports, dependencies
+npm run dedup          # jscpd: copy-paste report
+npm run housekeeping   # outdated deps, audit, unused, dedup, lint — run from time to time
+npm run upgrade        # bump all dependencies to latest, including majors
 ```
+
+## Checks
+
+`git push` runs a lefthook pre-push gate (`lefthook.yml`): lint, typecheck, tests and knip on the whole project, ~2s. No pre-commit hooks — commit freely mid-task. When the gate fails, fix the errors; never bypass it with `--no-verify` or `LEFTHOOK=0`.
+
+- Biome (`biome.jsonc`) starts from **all** rules (`"preset": "all"`) plus picked nursery rules; every rule turned off has a comment with the reason. Don't turn rules off or add `biome-ignore` without agreeing first.
+- Complexity limits: 80 lines per function, cognitive complexity 20, 400 lines per file, 5 params. Tests are exempt. Temporary per-file exceptions are marked `TODO` in `biome.jsonc` and must go away.
+- TypeScript is strict, including `noUncheckedIndexedAccess`.
+- `components/ui/` holds vendored shadcn components — excluded from Biome, knip and jscpd; re-add them with the shadcn CLI instead of editing.
+- No React Compiler (dropped with `@vitejs/plugin-react` 6); memoize by hand only where it matters.
 
 ## Domain notes
 
