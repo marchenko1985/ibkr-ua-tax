@@ -7,7 +7,7 @@ export function HowCard() {
         <CardTitle>Як сформувати звіт</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        <ol className="list-decimal list-inside space-y-2">
+        <ol className="list-inside list-decimal space-y-2">
           <li>
             Переходимо у розділ <b>Performance & Reports / Statements</b> в кабінеті IBKR.
           </li>
@@ -22,7 +22,7 @@ export function HowCard() {
           </li>
           <li>
             У розділі <b>Default Sections</b> відмічаємо наступні секції:
-            <ul className="list-disc list-inside ml-4">
+            <ul className="ml-4 list-inside list-disc">
               <li>
                 <b>Account Information</b> - інформація про рахунок
               </li>
@@ -39,7 +39,7 @@ export function HowCard() {
           </li>
           <li>
             У розділі <b>Section Configurations</b> виставляємо наступні параметри:
-            <ul className="list-disc list-inside ml-4">
+            <ul className="ml-4 list-inside list-disc">
               <li>
                 <b>Profit and Loss: Realized P/L Only</b> - просимо показувати лише фактично реалізований прибуток/збиток.
               </li>

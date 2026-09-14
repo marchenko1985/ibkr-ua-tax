@@ -3,12 +3,16 @@ import { fetchRates as fetchRatesRange, rateFor } from "./rates";
 
 export async function fetchRates(transactions: ReturnType<typeof extract>) {
   const [first] = transactions;
-  if (!first) return [];
+  if (!first) {
+    return [];
+  }
 
   const min_open_date = transactions.reduce((min, item) => (item.open_date < min ? item.open_date : min), first.open_date);
   const max_close_date = transactions.reduce((max, item) => (item.close_date > max ? item.close_date : max), first.close_date);
 
-  if (!min_open_date || !max_close_date) return [];
+  if (!(min_open_date && max_close_date)) {
+    return [];
+  }
 
   const rates = await fetchRatesRange(min_open_date, max_close_date);
 

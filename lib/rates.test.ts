@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { addDays, fetchRates, parseRates, rateFor, ratesUrl } from "./rates";
-import { fetchRates as fetchTradeRates, withRates } from "./fetchRates";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { extract } from "./extract";
+import { fetchRates as fetchTradeRates, withRates } from "./fetchRates";
 import { loadFixture } from "./fixture";
+import { addDays, fetchRates, parseRates, rateFor, ratesUrl } from "./rates";
 
 // Shape of https://bank.gov.ua/NBU_Exchange/exchange_site?valcode=usd&json
 const nbuResponse = [
@@ -12,7 +12,7 @@ const nbuResponse = [
 ];
 
 function stubFetch(data: unknown) {
-  const fetch = vi.fn(async (_url: URL, _init?: RequestInit) => new Response(JSON.stringify(data)));
+  const fetch = vi.fn(async (_url: URL, _init?: RequestInit) => Response.json(data));
   vi.stubGlobal("fetch", fetch);
   return fetch;
 }
@@ -102,10 +102,10 @@ describe("trade rates", () => {
     ]);
     const trades = extract(loadFixture("files/qqq.htm"));
 
-    const withRates = await fetchTradeRates(trades);
+    const trades_with_rates = await fetchTradeRates(trades);
 
     expect(fetch.mock.calls[0]?.[0].toString()).toBe(ratesUrl("2020-05-19", "2026-03-10").toString());
-    expect(withRates.every((t) => t.open_rate === 35 && t.open_rate_estimated && t.close_rate === 35 && t.close_rate_estimated)).toBe(true);
+    expect(trades_with_rates.every((t) => t.open_rate === 35 && t.open_rate_estimated && t.close_rate === 35 && t.close_rate_estimated)).toBe(true);
   });
 
   it("does not fetch without trades", async () => {
@@ -118,7 +118,9 @@ describe("trade rates", () => {
   it("assigns open rate by open date and close rate by close date", () => {
     const trades = extract(loadFixture("files/qqq.htm"));
     const buyback = trades.find((t) => t.symbol === "QQQ" && t.is_short);
-    if (!buyback) throw new Error("buyback not found");
+    if (!buyback) {
+      throw new Error("buyback not found");
+    }
 
     const [trade] = withRates([buyback], { "2026-03-02": 41.5, "2026-03-03": 41.6123 });
 
@@ -128,7 +130,9 @@ describe("trade rates", () => {
   it("marks estimated rates", () => {
     const trades = extract(loadFixture("files/qqq.htm"));
     const buyback = trades.find((t) => t.symbol === "QQQ" && t.is_short);
-    if (!buyback) throw new Error("buyback not found");
+    if (!buyback) {
+      throw new Error("buyback not found");
+    }
 
     const [trade] = withRates([buyback], { "2026-03-01": 41.0, "2026-03-03": 41.6, "2026-03-04": 41.8 });
 

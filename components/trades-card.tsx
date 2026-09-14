@@ -1,18 +1,19 @@
-import { extract } from "@/lib/extract";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { fetchRates } from "@/lib/fetchRates";
+import { useEffect, useId, useMemo, useState, useTransition } from "react";
 import { enrich } from "@/lib/enrich";
+import { extract } from "@/lib/extract";
+import { fetchRates } from "@/lib/fetchRates";
 import { tradesTotals } from "@/lib/totals";
-import { ErrorCard } from "./error-card";
-import { EstimatedRatesCard, estimatedRateNote } from "./estimated-rates-card";
-import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
-import { Input } from "./ui/input";
-import { Field, FieldGroup } from "./ui/field";
+import { ErrorCard } from "./error-card";
+import { EstimatedRateHint } from "./estimated-rate-hint";
+import { EstimatedRatesCard } from "./estimated-rates-card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
+import { Field, FieldGroup } from "./ui/field";
+import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export function TradesCard({ document }: { document: Document | null | undefined }) {
   const [isPending, startTransition] = useTransition();
@@ -23,26 +24,29 @@ export function TradesCard({ document }: { document: Document | null | undefined
 
   // Single filtered array for Ф1, totals, and taxes — excludes assigned/exercised options
   // which are not taxable events (they convert to stock, their economics are in stock basis)
-  const taxableTrades = useMemo(() => trades.filter((t) => !t.is_assignment && !t.is_exercise), [trades]);
+  const taxableTrades = useMemo(() => trades.filter((t) => !(t.is_assignment || t.is_exercise)), [trades]);
   const convertedCount = trades.length - taxableTrades.length;
 
   useEffect(() => {
-    if (!document) return;
+    if (!document) {
+      return;
+    }
 
     startTransition(async () => {
       setError(null);
       try {
         const tradesWithoutRates = extract(document);
         const tradesWithRates = await fetchRates(tradesWithoutRates);
-        const trades = enrich(tradesWithRates);
-        setTrades(trades);
-      } catch (error) {
-        setError(error as Error);
+        setTrades(enrich(tradesWithRates));
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
       }
     });
   }, [document]);
 
-  if (!document) return null;
+  if (!document) {
+    return null;
+  }
 
   if (isPending) {
     return (
@@ -115,7 +119,7 @@ export function TradesCard({ document }: { document: Document | null | undefined
           <Table>
             <TableBody>
               {taxableTrades.map((trade, i) => (
-                <TableRow key={i}>
+                <TableRow key={trade.id}>
                   <TableCell>{i + 1}</TableCell>
                   <TableCell>4</TableCell>
                   <TableCell>{trade.symbol}</TableCell>
@@ -132,6 +136,7 @@ export function TradesCard({ document }: { document: Document | null | undefined
 }
 
 function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extract>; taxableTrades: ReturnType<typeof extract> }) {
+  const id = useId();
   const [search, setSearch] = useState("");
   const [showStocks, setShowStocks] = useState(true);
   const [showOptions, setShowOptions] = useState(true);
@@ -139,9 +144,15 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
   const filteredTrades = useMemo(
     () =>
       trades.filter((trade) => {
-        if (search && !trade.symbol.toLowerCase().includes(search.toLowerCase())) return false;
-        if (!showStocks && !trade.is_option) return false;
-        if (!showOptions && trade.is_option) return false;
+        if (search && !trade.symbol.toLowerCase().includes(search.toLowerCase())) {
+          return false;
+        }
+        if (!(showStocks || trade.is_option)) {
+          return false;
+        }
+        if (!showOptions && trade.is_option) {
+          return false;
+        }
         return true;
       }),
     [trades, search, showStocks, showOptions],
@@ -150,9 +161,15 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
   const filteredTaxableTrades = useMemo(
     () =>
       taxableTrades.filter((trade) => {
-        if (search && !trade.symbol.toLowerCase().includes(search.toLowerCase())) return false;
-        if (!showStocks && !trade.is_option) return false;
-        if (!showOptions && trade.is_option) return false;
+        if (search && !trade.symbol.toLowerCase().includes(search.toLowerCase())) {
+          return false;
+        }
+        if (!(showStocks || trade.is_option)) {
+          return false;
+        }
+        if (!showOptions && trade.is_option) {
+          return false;
+        }
         return true;
       }),
     [taxableTrades, search, showStocks, showOptions],
@@ -163,17 +180,17 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
 
   return (
     <>
-      <FieldGroup className="flex-row mb-4">
+      <FieldGroup className="mb-4 flex-row">
         <Field orientation="horizontal" className="w-auto">
-          <Input id="search" name="search" type="text" placeholder="symbol, e.g. AAPL" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input id={`${id}-search`} name="search" type="text" placeholder="symbol, e.g. AAPL" value={search} onChange={(e) => setSearch(e.target.value)} />
         </Field>
         <Field orientation="horizontal" className="w-auto">
-          <Checkbox id="showStocks" checked={showStocks} onCheckedChange={setShowStocks} />
-          <Label htmlFor="showStocks">акції</Label>
+          <Checkbox id={`${id}-stocks`} checked={showStocks} onCheckedChange={setShowStocks} />
+          <Label htmlFor={`${id}-stocks`}>акції</Label>
         </Field>
         <Field orientation="horizontal" className="w-auto">
-          <Checkbox id="showOptions" checked={showOptions} onCheckedChange={setShowOptions} />
-          <Label htmlFor="showOptions">опціони</Label>
+          <Checkbox id={`${id}-options`} checked={showOptions} onCheckedChange={setShowOptions} />
+          <Label htmlFor={`${id}-options`}>опціони</Label>
         </Field>
       </FieldGroup>
       <Table className="text-center">
@@ -182,13 +199,13 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
             <TableHead className="text-center" colSpan={6}>
               Interactive Brokers Statement
             </TableHead>
-            <TableHead className="text-center border-l" colSpan={3}>
+            <TableHead className="border-l text-center" colSpan={3}>
               USD
             </TableHead>
-            <TableHead className="text-center border-l" colSpan={2}>
+            <TableHead className="border-l text-center" colSpan={2}>
               Exchange Rates
             </TableHead>
-            <TableHead className="text-center border-l" colSpan={3}>
+            <TableHead className="border-l text-center" colSpan={3}>
               UAH
             </TableHead>
           </TableRow>
@@ -242,12 +259,12 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <TooltipContent>Дата відкриття позиції</TooltipContent>
               </Tooltip>
             </TableHead>
-            <TableHead className="text-center border-l">
+            <TableHead className="border-l text-center">
               <Tooltip>
                 <TooltipTrigger>Open</TooltipTrigger>
                 <TooltipContent>
                   <p>Витрати в доларах (скориговане значення)</p>
-                  <p className="text-muted-foreground text-xs mt-1">Long: Basis (вартість придбання)</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: Basis (вартість придбання)</p>
                   <p className="text-muted-foreground text-xs">Short: |Basis| − Realized (вартість зворотнього викупу)</p>
                   <p className="text-muted-foreground text-xs">Expired short: 0 (нічого не викуповували, опціон згорів)</p>
                 </TooltipContent>
@@ -258,7 +275,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <TooltipTrigger>Close</TooltipTrigger>
                 <TooltipContent>
                   <p>Дохід в доларах (скориговане значення)</p>
-                  <p className="text-muted-foreground text-xs mt-1">Long: Basis + Realized (виручка від продажу з урахуванням комісій)</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: Basis + Realized (виручка від продажу з урахуванням комісій)</p>
                   <p className="text-muted-foreground text-xs">Short: |Basis| (премія від продажу)</p>
                   <p className="text-muted-foreground text-xs">Expired long: 0 (опціон згорів, нічого не отримано)</p>
                 </TooltipContent>
@@ -269,11 +286,11 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <TooltipTrigger>Realized</TooltipTrigger>
                 <TooltipContent>
                   <p>Реалізований прибуток/збиток в доларах</p>
-                  <p className="text-muted-foreground text-xs mt-1">Close USD − Open USD</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Close USD − Open USD</p>
                 </TooltipContent>
               </Tooltip>
             </TableHead>
-            <TableHead className="text-center border-l">
+            <TableHead className="border-l text-center">
               <Tooltip>
                 <TooltipTrigger>Open Rate</TooltipTrigger>
                 <TooltipContent>Курс долара на дату відкриття позиції</TooltipContent>
@@ -290,7 +307,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <TooltipTrigger>Open</TooltipTrigger>
                 <TooltipContent>
                   <p>Витрати в гривнях</p>
-                  <p className="text-muted-foreground text-xs mt-1">Long: Basis × OpenRate (вартість купівлі)</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: Basis × OpenRate (вартість купівлі)</p>
                   <p className="text-muted-foreground text-xs">Short: (|Basis| − Realized) × CloseRate (вартість зворотнього викупу)</p>
                   <p className="text-muted-foreground text-xs">Expired: 0 (нічого не викуповували)</p>
                 </TooltipContent>
@@ -301,7 +318,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <TooltipTrigger>Close</TooltipTrigger>
                 <TooltipContent>
                   <p>Дохід в гривнях</p>
-                  <p className="text-muted-foreground text-xs mt-1">Long: (Basis + Realized) × CloseRate (виручка від продажу)</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Long: (Basis + Realized) × CloseRate (виручка від продажу)</p>
                   <p className="text-muted-foreground text-xs">Short: |Basis| × OpenRate (премія від продажу)</p>
                   <p className="text-muted-foreground text-xs">Expired: |Basis| × OpenRate (вся премія як дохід)</p>
                 </TooltipContent>
@@ -312,7 +329,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                 <TooltipTrigger>Realized</TooltipTrigger>
                 <TooltipContent>
                   <p>Реалізований прибуток/збиток в гривнях</p>
-                  <p className="text-muted-foreground text-xs mt-1">Close UAH − Open UAH</p>
+                  <p className="mt-1 text-muted-foreground text-xs">Close UAH − Open UAH</p>
                 </TooltipContent>
               </Tooltip>
             </TableHead>
@@ -320,10 +337,10 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
         </TableHeader>
 
         <TableBody>
-          {filteredTrades.map((trade, i) => {
+          {filteredTrades.map((trade) => {
             const isConverted = trade.is_assignment || trade.is_exercise;
             return (
-              <TableRow key={i} className={cn(isConverted && "opacity-40")}>
+              <TableRow key={trade.id} className={cn(isConverted && "opacity-40")}>
                 <TableCell>{trade.close_date}</TableCell>
                 <TableCell>{trade.symbol}</TableCell>
                 <TableCell className={cn(trade.open_quantity > 0 && "text-blue-500", trade.open_quantity < 0 && "text-red-500")}>{trade.open_quantity}</TableCell>
@@ -338,7 +355,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                         <TooltipTrigger>—</TooltipTrigger>
                         <TooltipContent>
                           <p className="font-semibold">Опціон конвертовано в акції ({trade.is_assignment ? "assignment" : "exercise"})</p>
-                          <p className="text-muted-foreground text-xs mt-1">Це не є податковою подією — вартість опціону включена в базову вартість акцій.</p>
+                          <p className="mt-1 text-muted-foreground text-xs">Це не є податковою подією — вартість опціону включена в базову вартість акцій.</p>
                           <p className="text-muted-foreground text-xs">Результат буде відображено при закритті позиції в акціях.</p>
                         </TooltipContent>
                       </Tooltip>
@@ -348,7 +365,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                         <TooltipTrigger>—</TooltipTrigger>
                         <TooltipContent>
                           <p className="font-semibold">Опціон конвертовано в акції</p>
-                          <p className="text-muted-foreground text-xs mt-1">Курси не застосовуються — позиція не є податковою подією.</p>
+                          <p className="mt-1 text-muted-foreground text-xs">Курси не застосовуються — позиція не є податковою подією.</p>
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
@@ -357,7 +374,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                         <TooltipTrigger>—</TooltipTrigger>
                         <TooltipContent>
                           <p className="font-semibold">Опціон конвертовано в акції ({trade.is_assignment ? "assignment" : "exercise"})</p>
-                          <p className="text-muted-foreground text-xs mt-1">Це не є податковою подією — вартість опціону включена в базову вартість акцій.</p>
+                          <p className="mt-1 text-muted-foreground text-xs">Це не є податковою подією — вартість опціону включена в базову вартість акцій.</p>
                           <p className="text-muted-foreground text-xs">Результат буде відображено при закритті позиції в акціях.</p>
                         </TooltipContent>
                       </Tooltip>
@@ -374,12 +391,12 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                           </p>
                           {trade.is_long ? (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">Basis (вартість придбання)</p>
+                              <p className="mt-1 text-muted-foreground text-xs">Basis (вартість придбання)</p>
                               <p>{trade.open_basis.toFixed(2)}</p>
                             </>
                           ) : (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">|Basis| − Realized (вартість зворотнього викупу)</p>
+                              <p className="mt-1 text-muted-foreground text-xs">|Basis| − Realized (вартість зворотнього викупу)</p>
                               <p>
                                 {Math.abs(trade.open_basis).toFixed(2)} − {trade.open_realized.toFixed(2)} = {trade.open_usd.toFixed(2)}
                               </p>
@@ -397,14 +414,14 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                           </p>
                           {trade.is_long ? (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">Basis + Realized (виручка з урахуванням комісій)</p>
+                              <p className="mt-1 text-muted-foreground text-xs">Basis + Realized (виручка з урахуванням комісій)</p>
                               <p>
                                 {trade.open_basis.toFixed(2)} + {trade.open_realized.toFixed(2)} = {trade.close_usd.toFixed(2)}
                               </p>
                             </>
                           ) : (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">|Basis| (премія від продажу)</p>
+                              <p className="mt-1 text-muted-foreground text-xs">|Basis| (премія від продажу)</p>
                               <p>{Math.abs(trade.open_basis).toFixed(2)}</p>
                             </>
                           )}
@@ -416,7 +433,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                         <TooltipTrigger className={cn(trade.realized_usd > 0 && "text-green-500", trade.realized_usd < 0 && "text-red-500")}>{trade.realized_usd.toFixed(2)}</TooltipTrigger>
                         <TooltipContent>
                           <p className="font-semibold">Реалізований {trade.realized_usd >= 0 ? "прибуток" : "збиток"} в доларах</p>
-                          <p className="text-muted-foreground text-xs mt-1">Close USD − Open USD</p>
+                          <p className="mt-1 text-muted-foreground text-xs">Close USD − Open USD</p>
                           <p>
                             {trade.close_usd.toFixed(2)} − {trade.open_usd.toFixed(2)} = {trade.realized_usd.toFixed(2)}
                           </p>
@@ -427,13 +444,13 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                       <Tooltip>
                         <TooltipTrigger className={cn(trade.open_rate_estimated && "text-yellow-600")}>
                           {trade.open_rate.toFixed(2)}
-                          {trade.open_rate_estimated && "*"}
+                          {trade.open_rate_estimated ? "*" : ""}
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Курс долара на дату відкриття позиції</p>
                           <p>Дата: {trade.open_date}</p>
                           <p>Курс: {trade.open_rate}</p>
-                          {trade.open_rate_estimated && <p className="text-yellow-500 text-xs mt-1">⚠️ {estimatedRateNote}</p>}
+                          {trade.open_rate_estimated ? <EstimatedRateHint /> : null}
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
@@ -441,13 +458,13 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                       <Tooltip>
                         <TooltipTrigger className={cn(trade.close_rate_estimated && "text-yellow-600")}>
                           {trade.close_rate.toFixed(2)}
-                          {trade.close_rate_estimated && "*"}
+                          {trade.close_rate_estimated ? "*" : ""}
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Курс долара на дату закриття позиції</p>
                           <p>Дата: {trade.close_date}</p>
                           <p>Курс: {trade.close_rate}</p>
-                          {trade.close_rate_estimated && <p className="text-yellow-500 text-xs mt-1">⚠️ {estimatedRateNote}</p>}
+                          {trade.close_rate_estimated ? <EstimatedRateHint /> : null}
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
@@ -460,14 +477,14 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                           </p>
                           {trade.is_long ? (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">Basis × OpenRate</p>
+                              <p className="mt-1 text-muted-foreground text-xs">Basis × OpenRate</p>
                               <p>
                                 {trade.open_basis} × {trade.open_rate} = {trade.open_uah.toFixed(2)}
                               </p>
                             </>
                           ) : (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">(|Basis| − Realized) × CloseRate</p>
+                              <p className="mt-1 text-muted-foreground text-xs">(|Basis| − Realized) × CloseRate</p>
                               <p>
                                 ({Math.abs(trade.open_basis)} − {trade.open_realized}) × {trade.close_rate}
                               </p>
@@ -488,7 +505,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                           </p>
                           {trade.is_long ? (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">(Basis + Realized) × CloseRate</p>
+                              <p className="mt-1 text-muted-foreground text-xs">(Basis + Realized) × CloseRate</p>
                               <p>
                                 ({trade.open_basis} + {trade.open_realized}) × {trade.close_rate}
                               </p>
@@ -498,7 +515,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                             </>
                           ) : (
                             <>
-                              <p className="text-muted-foreground text-xs mt-1">|Basis| × OpenRate</p>
+                              <p className="mt-1 text-muted-foreground text-xs">|Basis| × OpenRate</p>
                               <p>
                                 {Math.abs(trade.open_basis)} × {trade.open_rate} = {trade.close_uah.toFixed(2)}
                               </p>
@@ -512,12 +529,12 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
                         <TooltipTrigger className={cn(trade.realized_uah > 0 && "text-green-500", trade.realized_uah < 0 && "text-red-500")}>{trade.realized_uah.toFixed(2)}</TooltipTrigger>
                         <TooltipContent>
                           <p className="font-semibold">Реалізований {trade.realized_uah >= 0 ? "прибуток" : "збиток"} в гривнях</p>
-                          <p className="text-muted-foreground text-xs mt-1">Close UAH − Open UAH</p>
+                          <p className="mt-1 text-muted-foreground text-xs">Close UAH − Open UAH</p>
                           <p>
                             {trade.close_uah.toFixed(2)} − {trade.open_uah.toFixed(2)}
                           </p>
                           <p>= {trade.realized_uah.toFixed(2)}</p>
-                          {trade.is_short && trade.open_realized > 0 && trade.realized_uah < 0 && <p className="text-yellow-500 text-xs mt-1">⚠️ Прибуткова угода в USD, але збиткова в UAH через зміну курсу</p>}
+                          {trade.is_short && trade.open_realized > 0 && trade.realized_uah < 0 && <p className="mt-1 text-xs text-yellow-500">⚠️ Прибуткова угода в USD, але збиткова в UAH через зміну курсу</p>}
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>

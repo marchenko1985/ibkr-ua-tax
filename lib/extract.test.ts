@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { extract } from "./extract";
 import { expectLotsAddUpToCloseRows, loadFixture, parseHtml } from "./fixture";
 
@@ -6,7 +6,9 @@ type Trade = ReturnType<typeof extract>[number];
 
 function find(trades: Trade[], symbol: string): Trade {
   const trade = trades.find((t) => t.symbol === symbol);
-  if (!trade) throw new Error(`trade ${symbol} not found`);
+  if (!trade) {
+    throw new Error(`trade ${symbol} not found`);
+  }
   return trade;
 }
 
@@ -41,6 +43,10 @@ describe("extract amd.htm", () => {
     expectLotsAddUpToCloseRows(trades);
   });
 
+  it("ids are positions of lots in the statement", () => {
+    expect(trades.map((t) => t.id).sort((a, b) => a - b)).toEqual(Array.from({ length: 14 }, (_, i) => i + 1));
+  });
+
   it("all fields of a closed option lot", () => {
     const trade = find(trades, "AMD 13MAR26 190 P");
     expect(trade).toMatchObject({
@@ -55,7 +61,6 @@ describe("extract amd.htm", () => {
       open_codes: ["ST"],
       close_datetime: "2026-03-13, 11:41:16",
       close_date: "2026-03-13",
-      close_year: 2026,
       close_quantity: -1,
       close_tprice: 0.2,
       close_proceeds: 20,

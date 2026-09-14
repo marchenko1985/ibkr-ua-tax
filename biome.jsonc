@@ -58,7 +58,14 @@
       "performance": {
         // Solid / Next.js rules — not our framework
         "useSolidForComponent": "off",
-        "noImgElement": "off"
+        "noImgElement": "off",
+        // Inline handlers like onClick={() => ...} are fine; useCallback everywhere is premature optimization
+        "noJsxPropsBind": "off"
+      },
+
+      "security": {
+        // Only false positives (CSS selectors, long Ukrainian sentences); the app handles no secrets
+        "noSecrets": "off"
       },
 
       "suspicious": {
@@ -74,7 +81,9 @@
         "noTernary": "off",
         // i18n rule; the UI is Ukrainian-only with literal text
         "noJsxLiterals": "off",
-        "useNumericSeparators": "off"
+        "useNumericSeparators": "off",
+        // Files read top-down: exported function first, its helpers below
+        "useExportsLast": "off"
       },
 
       // Experimental rules picked explicitly (the preset does not include nursery)
@@ -113,15 +122,31 @@
           "nursery": {
             "noExcessiveNestedCallbacks": "off"
           },
-          "security": {
-            "noSecrets": "off"
-          },
           "correctness": {
             "noNodejsModules": "off"
           },
           "suspicious": {
             "noMisplacedAssertion": "off"
           }
+        }
+      }
+    },
+    {
+      // TODO: temporary, remove when the component is split into smaller ones
+      "includes": ["components/trades-card.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": { "noExcessiveCognitiveComplexity": "off" }
+        }
+      }
+    },
+    {
+      // TODO: temporary, remove when the component is reworked; renders static rows copied
+      // from the statement, they are never reordered, so index keys are harmless for now
+      "includes": ["components/preview-card.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noArrayIndexKey": "off" }
         }
       }
     },

@@ -28,8 +28,10 @@ export function expectLotsAddUpToCloseRows(trades: Trade[]) {
     groups.set(key, [...(groups.get(key) ?? []), trade]);
   }
   for (const [key, lots] of groups) {
-    const close = lots[0];
-    if (!close) continue;
+    const [close] = lots;
+    if (!close) {
+      throw new Error(`no lots in group ${key}`);
+    }
     const basis = lots.reduce((acc, lot) => acc + lot.open_basis, 0);
     const realized = lots.reduce((acc, lot) => acc + lot.open_realized, 0);
     const tolerance = 0.01 * lots.length + 1e-9;

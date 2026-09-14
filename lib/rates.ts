@@ -7,7 +7,9 @@
  * @returns map of YYYY-MM-DD to rate, empty when range is not given
  */
 export async function fetchRates(fromDate: string, toDate: string) {
-  if (!fromDate || !toDate) return {};
+  if (!(fromDate && toDate)) {
+    return {};
+  }
 
   const response = await fetch(ratesUrl(addDays(fromDate, -RATES_MARGIN_DAYS), addDays(toDate, RATES_MARGIN_DAYS)), {
     headers: {
@@ -28,7 +30,11 @@ export function ratesUrl(fromDate: string, toDate: string) {
   return url;
 }
 
-type NbuRate = { cc: string; exchangedate: string; rate_per_unit: number };
+interface NbuRate {
+  cc: string;
+  exchangedate: string;
+  rate_per_unit: number;
+}
 
 /**
  * Converts NBU response into a map of YYYY-MM-DD to USD rate.
@@ -36,8 +42,7 @@ type NbuRate = { cc: string; exchangedate: string; rate_per_unit: number };
  */
 export function parseRates(data: NbuRate[]) {
   const rates: Record<string, number> = {};
-  for (const item of data) {
-    if (item.cc !== "USD") continue;
+  for (const item of data.filter((rate) => rate.cc === "USD")) {
     rates[item.exchangedate.split(".").reverse().join("-")] = item.rate_per_unit;
   }
   return rates;
@@ -53,7 +58,7 @@ export const RATES_MARGIN_DAYS = 7;
 export function addDays(date: string, days: number) {
   const value = new Date(`${date}T00:00:00Z`);
   value.setUTCDate(value.getUTCDate() + days);
-  return value.toISOString().substring(0, 10);
+  return value.toISOString().slice(0, "YYYY-MM-DD".length);
 }
 
 /**
@@ -65,13 +70,19 @@ export function addDays(date: string, days: number) {
  */
 export function rateFor(rates: Record<string, number>, date: string) {
   const exact = rates[date];
-  if (exact !== undefined) return { rate: exact, estimated: false };
+  if (exact !== undefined) {
+    return { rate: exact, estimated: false };
+  }
 
   let before = "";
   let after = "";
   for (const day of Object.keys(rates)) {
-    if (day < date && day > before) before = day;
-    if (day > date && (!after || day < after)) after = day;
+    if (day < date && day > before) {
+      before = day;
+    }
+    if (day > date && (!after || day < after)) {
+      after = day;
+    }
   }
 
   const rateBefore = rates[before];

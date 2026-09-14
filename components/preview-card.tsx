@@ -1,11 +1,12 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "./ui/table";
-import { cn } from "@/lib/utils";
 
 export function PreviewCard({ document }: { document: Document | null | undefined }) {
-  if (!document) return null;
+  if (!document) {
+    return null;
+  }
 
   const period = document.querySelector("p.text-title span")?.textContent; // translate month names
   const generated = Array.from(document.querySelectorAll("p.text-center.text-gray"))
@@ -16,18 +17,18 @@ export function PreviewCard({ document }: { document: Document | null | undefine
   // consider: we might use `print:break-before-page` for sections to be printed on separate pages
 
   return (
-    <Card className="print:shadow-none print:ring-0 print:p-0">
+    <Card className="print:p-0 print:shadow-none print:ring-0">
       <CardHeader className="print:hidden">
         <CardTitle>Попередній перегляд звіту</CardTitle>
         <CardDescription>Попередній перегляд сформованного та перекладеного звіту для податкової</CardDescription>
         <CardAction>
-          <Button onClick={() => window.print()}>Завантажити PDF</Button>
+          <Button onClick={() => globalThis.print()}>Завантажити PDF</Button>
         </CardAction>
       </CardHeader>
       <CardContent className="print:p-0">
-        <div className="p-4 space-y-4 border print:border-none print:p-0">
+        <div className="space-y-4 border p-4 print:border-none print:p-0">
           <div className="flex items-center justify-between">
-            <img src="https://www.interactivebrokers.com/images/common/logos/ibkr/interactive-brokers.svg" width="220" alt="Interactive Brokers" />
+            <img src="https://www.interactivebrokers.com/images/common/logos/ibkr/interactive-brokers.svg" width="220" height="34" alt="Interactive Brokers" />
             <div>
               <div className="text-lg">
                 {/* Activity Statement */}
@@ -56,12 +57,14 @@ function Account({ document }: { document: Document }) {
     key: tr.querySelector("td:nth-child(1)")?.textContent,
     val: tr.querySelector("td:nth-child(2)")?.textContent,
   }));
-  if (!account?.length) return null;
+  if (account.length === 0) {
+    return null;
+  }
 
   return (
     <>
       <Section>Інформація про аккаунт</Section>
-      <table className="table-auto w-full">
+      <table className="w-full table-auto">
         <tbody>
           {account
             .filter((item) => !item.key?.startsWith("Address"))
@@ -79,7 +82,9 @@ function Account({ document }: { document: Document }) {
 
 function Trades({ document }: { document: Document }) {
   const rows: HTMLTableRowElement[] = Array.from(document.querySelectorAll('div[id^="tblTransactions_"] table tbody tr'));
-  if (!rows?.length) return null;
+  if (rows.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -87,7 +92,7 @@ function Trades({ document }: { document: Document }) {
         Угоди
         {/* Trades */}
       </Section>
-      <table className="table-auto w-full">
+      <table className="w-full table-auto">
         <thead>
           <tr className="border-b">
             <Cell>
@@ -142,8 +147,13 @@ function Trades({ document }: { document: Document }) {
   );
 }
 
+/** Symbol, Date/Time and Exchange are text, the rest are numbers and codes */
+const FIRST_NUMERIC_COLUMN = 3;
+
 function TradesTableRow({ tr }: { tr: HTMLTableRowElement }) {
-  if (!tr) return null;
+  if (!tr) {
+    return null;
+  }
 
   const cells = Array.from(tr.querySelectorAll("td"));
   const isTotal = cells.at(0)?.textContent?.startsWith("Total");
@@ -151,7 +161,7 @@ function TradesTableRow({ tr }: { tr: HTMLTableRowElement }) {
   return (
     <tr className="border-t first:border-t-0">
       {cells.map((td, index) => (
-        <Cell className={cn(cells.length === 1 && "bg-secondary", isTotal && "bg-secondary font-semibold", index >= 3 && "text-right", isTotal && index > 0 && "text-right")} key={index} colSpan={td.colSpan}>
+        <Cell className={cn(cells.length === 1 && "bg-secondary", isTotal && "bg-secondary font-semibold", index >= FIRST_NUMERIC_COLUMN && "text-right", isTotal && index > 0 && "text-right")} key={index} colSpan={td.colSpan}>
           {td.textContent?.replace("Total", "Загалом")?.replace("Closed Lot:", "Закрита позиція:")?.replace("Equity and Index Options", "Опціони на акції та індекси")?.replace("Stocks", "Акції")?.replace("USD", "Долар США")}
         </Cell>
       ))}
@@ -161,11 +171,13 @@ function TradesTableRow({ tr }: { tr: HTMLTableRowElement }) {
 
 function Dividends({ document }: { document: Document }) {
   const rows: HTMLTableRowElement[] = Array.from(document.querySelectorAll('div[id^="tblCombDiv_"] table tbody tr'));
-  if (!rows?.length) return null;
+  if (rows.length === 0) {
+    return null;
+  }
   return (
     <div className="space-y-4">
       <Section>Дивіденди</Section>
-      <table className="table-auto w-full">
+      <table className="w-full table-auto">
         <thead>
           <tr className="border-b">
             <Cell>Дата</Cell>
@@ -191,7 +203,9 @@ function Dividends({ document }: { document: Document }) {
 
 function WithholdingTax({ document }: { document: Document }) {
   const rows: HTMLTableRowElement[] = Array.from(document.querySelectorAll('div[id^="tblWithholdingTax_"] table tbody tr'));
-  if (!rows?.length) return null;
+  if (rows.length === 0) {
+    return null;
+  }
 
   // NOTE: somehow IBKR passes withdrawals for previous year, so we are going to filter them, also, we should manually count total
   const dividends = Array.from(document.querySelectorAll('div[id^="tblCombDiv_"] table tbody tr'))
@@ -200,23 +214,23 @@ function WithholdingTax({ document }: { document: Document }) {
       date: tr.querySelector("td:nth-child(1)")?.textContent,
       identifier: tr.querySelector("td:nth-child(2)")?.textContent?.split(" (")?.shift(),
     }))
-    .filter((item): item is { date: string; identifier: string } => !!item.date && !!item.identifier);
+    .filter((item): item is { date: string; identifier: string } => Boolean(item.date) && Boolean(item.identifier));
 
   const filteredRows = rows.slice(1, -1).filter((row) => {
     const date = row.querySelector("td:nth-child(1)")?.textContent;
     const identifier = row.querySelector("td:nth-child(2)")?.textContent;
-    return !!date && !!identifier && dividends.some((div) => div.date === date && identifier.startsWith(div.identifier));
+    return Boolean(date) && Boolean(identifier) && dividends.some((div) => div.date === date && identifier?.startsWith(div.identifier));
   });
 
   const total = filteredRows.reduce((acc, row) => {
     const amount = Number(row.querySelector("td:nth-child(3)")?.textContent?.replaceAll(",", ""));
-    return acc + (isNaN(amount) ? 0 : amount);
+    return acc + (Number.isNaN(amount) ? 0 : amount);
   }, 0);
 
   return (
     <div className="space-y-4">
       <Section>Утриманий податок</Section>
-      <table className="table-auto w-full">
+      <table className="w-full table-auto">
         <thead>
           <tr className="border-b">
             <Cell>Дата</Cell>
@@ -244,10 +258,8 @@ function WithholdingTax({ document }: { document: Document }) {
             <Cell className="bg-secondary font-semibold" colSpan={2}>
               Загалом
             </Cell>
-            <Cell className="bg-secondary font-semibold text-right">{total.toFixed(2)}</Cell>
-            <Cell className="bg-secondary">
-              <></>
-            </Cell>
+            <Cell className="bg-secondary text-right font-semibold">{total.toFixed(2)}</Cell>
+            <Cell className="bg-secondary">{null}</Cell>
           </tr>
         </tbody>
       </table>
@@ -258,16 +270,18 @@ function WithholdingTax({ document }: { document: Document }) {
 function Codes({ document }: { document: Document }) {
   // extract codes from trades rows, note, we are simply extracting last cell, which not always contains code, but because we are filtering only known codes thats fine
   const extracted = Array.from(new Set(Array.from(document.querySelectorAll('div[id^="tblTransactions_"] table tbody tr td:last-child')).flatMap((el) => el.textContent?.trim()?.split(";"))));
-  if (!extracted?.length) return null;
+  if (!extracted?.length) {
+    return null;
+  }
 
   return (
     <>
       <Section>Коди</Section>
-      <table className="table-auto w-full">
+      <table className="w-full table-auto">
         <tbody>
           {extracted
             .map((code) => ({ code, translation: translateCode(code) }))
-            .filter(({ translation }) => !!translation)
+            .filter(({ translation }) => translation !== "")
             .map(({ code, translation }, index) => (
               <tr key={index} className="border-t first:border-t-0">
                 <Cell>{code}</Cell>
@@ -282,18 +296,20 @@ function Codes({ document }: { document: Document }) {
 
 function Cell({ children, className, colSpan }: { children: ReactNode; className?: string; colSpan?: number }) {
   return (
-    <td className={cn("break-words text-xs align-top border-l first:border-l-0 py-0 px-0.5", className)} colSpan={colSpan}>
+    <td className={cn("break-words border-l px-0.5 py-0 align-top text-xs first:border-l-0", className)} colSpan={colSpan}>
       {children}
     </td>
   );
 }
 
 function Section({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("text-lg bg-secondary text-secondary-foreground border px-2 py-1 rounded", className)}>{children}</div>;
+  return <div className={cn("rounded border bg-secondary px-2 py-1 text-lg text-secondary-foreground", className)}>{children}</div>;
 }
 
 function translatePeriod(period: string | undefined) {
-  if (!period) return "";
+  if (!period) {
+    return "";
+  }
 
   const months: Record<string, string> = {
     January: "Січень",
@@ -310,15 +326,18 @@ function translatePeriod(period: string | undefined) {
     December: "Грудень",
   };
 
+  let translated = period;
   for (const [en, uk] of Object.entries(months)) {
-    period = period.replaceAll(en, uk);
+    translated = translated.replaceAll(en, uk);
   }
 
-  return period;
+  return translated;
 }
 
 function translateAccount(str: string | undefined) {
-  if (!str) return "";
+  if (!str) {
+    return "";
+  }
 
   const accounts: Record<string, string> = {
     Individual: "Індивідуальний",
@@ -340,15 +359,18 @@ function translateAccount(str: string | undefined) {
     "Base Currency": "Базова валюта",
   };
 
+  let translated = str;
   for (const [en, uk] of Object.entries(accounts)) {
-    str = str.replaceAll(en, uk);
+    translated = translated.replaceAll(en, uk);
   }
 
-  return str;
+  return translated;
 }
 
 function translateCode(code: string | undefined) {
-  if (!code) return "";
+  if (!code) {
+    return "";
+  }
   const codes = [
     { code: "A", description: "Assignment", translation: "Призначення (виконання опціону)" },
     { code: "LT", description: "Long Term P/L", translation: "Довгостроковий прибуток/збиток" },
@@ -432,6 +454,8 @@ function translateCode(code: string | undefined) {
     { code: "XCH", description: "Mutual Fund Exchange Transaction", translation: "Обмін пайових фондів" },
   ];
   const found = codes.find((c) => c.code === code);
-  if (!found) return "";
+  if (!found) {
+    return "";
+  }
   return found.translation;
 }

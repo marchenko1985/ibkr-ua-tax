@@ -1,4 +1,4 @@
-import { extract } from "./extract";
+import type { extract } from "./extract";
 import { uah } from "./uah";
 
 /**
@@ -19,16 +19,11 @@ import { uah } from "./uah";
  */
 export function enrich(trades: ReturnType<typeof extract>) {
   return trades.map((item) => {
-    const open_rate = item.open_rate;
-    const close_rate = item.close_rate;
-
     // Skip computation for assigned/exercised options — they are not taxable events.
     // Their economics are embedded in the resulting stock's cost basis.
     if (item.is_assignment || item.is_exercise) {
       return {
         ...item,
-        open_rate,
-        close_rate,
         open_usd: 0,
         close_usd: 0,
         realized_usd: 0,
@@ -46,17 +41,14 @@ export function enrich(trades: ReturnType<typeof extract>) {
     });
 
     const { open_uah, close_uah, realized_uah } = uah({
-      open_rate,
-      close_rate,
+      open_rate: item.open_rate,
+      close_rate: item.close_rate,
       basis: item.open_basis,
       realized: item.open_realized,
-      commission: item.close_commfee,
     });
 
     return {
       ...item,
-      open_rate,
-      close_rate,
       open_usd,
       close_usd,
       realized_usd,

@@ -1,23 +1,26 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { ErrorCard } from "./error-card";
-import { EstimatedRatesCard, estimatedRateNote } from "./estimated-rates-card";
-import { cn } from "@/lib/utils";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
-import { extractDividends, withDividendRates, type Dividend } from "@/lib/dividends";
+import { type Dividend, extractDividends, withDividendRates } from "@/lib/dividends";
 import { fetchRates } from "@/lib/rates";
 import { dividendsTotals } from "@/lib/totals";
+import { cn } from "@/lib/utils";
+import { ErrorCard } from "./error-card";
+import { EstimatedRateHint } from "./estimated-rate-hint";
+import { EstimatedRatesCard } from "./estimated-rates-card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export function DividendsCard({ document }: { document: Document | null | undefined }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<Error | null>(null);
   const [dividends, setDividends] = useState<Dividend[]>([]);
-  const min_date = useMemo(() => [...dividends]?.sort((a, b) => a.date.localeCompare(b.date))[0]?.date, [dividends]);
-  const max_date = useMemo(() => [...dividends]?.sort((a, b) => b.date.localeCompare(a.date))[0]?.date, [dividends]);
+  const min_date = useMemo(() => [...dividends].sort((a, b) => a.date.localeCompare(b.date))[0]?.date, [dividends]);
+  const max_date = useMemo(() => [...dividends].sort((a, b) => b.date.localeCompare(a.date))[0]?.date, [dividends]);
 
   useEffect(() => {
-    if (!document) return;
+    if (!document) {
+      return;
+    }
 
     startTransition(async () => {
       setError(null);
@@ -27,13 +30,15 @@ export function DividendsCard({ document }: { document: Document | null | undefi
         const toDate = dividendsWithoutRates.sort((a, b) => b.date.localeCompare(a.date))[0]?.date;
         const rates = await fetchRates(fromDate ?? "", toDate ?? "");
         setDividends(withDividendRates(dividendsWithoutRates, rates));
-      } catch (error) {
-        setError(error as Error);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
       }
     });
   }, [document]);
 
-  if (!document) return null;
+  if (!document) {
+    return null;
+  }
 
   if (isPending) {
     return (
@@ -130,8 +135,8 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {dividends.map((div, index) => (
-          <TableRow key={index}>
+        {dividends.map((div) => (
+          <TableRow key={`${div.date} ${div.description}`}>
             <TableCell>{div.date}</TableCell>
             <TableCell>{div.identifier}</TableCell>
             <TableCell className="text-right">{div.amount}</TableCell>
@@ -141,13 +146,13 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
               <Tooltip>
                 <TooltipTrigger className={cn(div.rate_estimated && "text-yellow-600")}>
                   {div.rate.toFixed(2)}
-                  {div.rate_estimated && "*"}
+                  {div.rate_estimated ? "*" : ""}
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Курс долара на дату нарахування дивідендів</p>
                   <p>Дата: {div.date}</p>
                   <p>Курс: {div.rate}</p>
-                  {div.rate_estimated && <p className="text-yellow-500 text-xs mt-1">⚠️ {estimatedRateNote}</p>}
+                  {div.rate_estimated ? <EstimatedRateHint /> : null}
                 </TooltipContent>
               </Tooltip>
             </TableCell>
@@ -172,7 +177,7 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
           <TableCell>{total.amount_total.toFixed(2)}</TableCell>
           <TableCell>{total.us_tax_total.toFixed(2)}</TableCell>
           <TableCell>{total.income_total.toFixed(2)}</TableCell>
-          <TableCell className="border-l"></TableCell>
+          <TableCell className="border-l" />
           <TableCell className="border-l">{total.total_income_uah.toFixed(2)}</TableCell>
         </TableRow>
         <TableRow>

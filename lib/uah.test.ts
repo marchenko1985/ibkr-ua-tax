@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { uah } from "./uah";
 
 /**
@@ -10,14 +10,12 @@ import { uah } from "./uah";
  *
  * Covers: long/short × stock/option × win/loss × expired worthless
  *
- * Commission from IB is always ≤ 0, e.g. -1
- * commission_uah = commission * close_rate = -1 * 42 = -42
- * realized_uah = close_uah - open_uah + commission_uah (adds negative = subtracts)
+ * Commissions are not touched: IBKR already includes them in basis and realized P/L
+ * realized_uah = close_uah - open_uah
  */
 
 const open_rate = 40;
 const close_rate = 42;
-const commission = -1;
 
 // ─── LONG POSITIONS ──────────────────────────────────────────────
 // Long: open_uah = basis * open_rate
@@ -32,14 +30,10 @@ describe("long", () => {
         close_rate,
         basis: 100,
         realized: 50,
-        commission,
       });
 
       expect(result.open_uah).toBe(100 * 40); // 4000
       expect(result.close_uah).toBe((100 + 50) * 42); // 6300
-      // 6300 - 4000 + (-42) = 2258
-      // expect(result.realized_uah).toBe(2258);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(6300 - 4000); // 2300
     });
 
@@ -50,14 +44,10 @@ describe("long", () => {
         close_rate,
         basis: 100,
         realized: -50,
-        commission,
       });
 
       expect(result.open_uah).toBe(100 * 40); // 4000
       expect(result.close_uah).toBe((100 + -50) * 42); // 2100
-      // 2100 - 4000 + (-42) = -1942
-      // expect(result.realized_uah).toBe(-1942);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(2100 - 4000); // -1900
     });
   });
@@ -70,13 +60,10 @@ describe("long", () => {
         close_rate,
         basis: 100,
         realized: 50,
-        commission,
       });
 
       expect(result.open_uah).toBe(4000);
       expect(result.close_uah).toBe(6300);
-      // expect(result.realized_uah).toBe(2258);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(6300 - 4000); // 2300
     });
 
@@ -87,13 +74,10 @@ describe("long", () => {
         close_rate,
         basis: 100,
         realized: -50,
-        commission,
       });
 
       expect(result.open_uah).toBe(4000);
       expect(result.close_uah).toBe(2100);
-      // expect(result.realized_uah).toBe(-1942);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(2100 - 4000); // -1900
     });
 
@@ -105,7 +89,6 @@ describe("long", () => {
         close_rate,
         basis: 100,
         realized: -100,
-        commission: 0,
       });
 
       expect(result.open_uah).toBe(100 * 40); // 4000
@@ -137,14 +120,10 @@ describe("short", () => {
         close_rate,
         basis: -100,
         realized: 10,
-        commission,
       });
 
       expect(result.open_uah).toBe(90 * 42); // 3780 (buyback cost)
       expect(result.close_uah).toBe(100 * 40); // 4000 (initial credit)
-      // 4000 - 3780 + (-42) = 178
-      // expect(result.realized_uah).toBe(178);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(4000 - 3780); // 220
     });
 
@@ -156,14 +135,10 @@ describe("short", () => {
         close_rate,
         basis: -100,
         realized: -10,
-        commission,
       });
 
       expect(result.open_uah).toBe(110 * 42); // 4620 (buyback cost)
       expect(result.close_uah).toBe(100 * 40); // 4000 (initial credit)
-      // 4000 - 4620 + (-42) = -662
-      // expect(result.realized_uah).toBe(-662);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(4000 - 4620); // -620
     });
   });
@@ -177,14 +152,10 @@ describe("short", () => {
         close_rate,
         basis: -100,
         realized: 50,
-        commission,
       });
 
       expect(result.open_uah).toBe(50 * 42); // 2100 (buyback cost)
       expect(result.close_uah).toBe(100 * 40); // 4000 (initial credit)
-      // 4000 - 2100 + (-42) = 1858
-      // expect(result.realized_uah).toBe(1858);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(4000 - 2100); // 1900
     });
 
@@ -196,27 +167,22 @@ describe("short", () => {
         close_rate,
         basis: -100,
         realized: -10,
-        commission,
       });
 
       expect(result.open_uah).toBe(110 * 42); // 4620
       expect(result.close_uah).toBe(100 * 40); // 4000
-      // 4000 - 4620 + (-42) = -662
-      // expect(result.realized_uah).toBe(-662);
-      // NOTE: we do not need touch commissions
       expect(result.realized_uah).toBe(4000 - 4620); // -620
     });
 
     it("expired worthless (IBKR reports realized = |basis|)", () => {
       // IBKR always reports realized = |basis| for expired short options
-      // e.g. NVDA 114 C: basis=-54.42, realized=54.42, commission=0
+      // e.g. NVDA 114 C: basis=-54.42, realized=54.42
       // buyback = 100 - 100 = 0 → open_uah = 0 (no buyback needed)
       const result = uah({
         open_rate,
         close_rate,
         basis: -100,
         realized: 100,
-        commission: 0,
       });
 
       expect(result.open_uah).toBe(0); // buyback = 100 - 100 = 0
@@ -227,7 +193,7 @@ describe("short", () => {
 });
 
 // ─── SAME RATE (no FX effect) ────────────────────────────────────
-// Verifies that when open_rate === close_rate, realized_uah ≈ realized * rate + commission * rate
+// Verifies that when open_rate === close_rate, realized_uah = realized * rate
 
 describe("same rate (no FX effect)", () => {
   const rate = 40;
@@ -238,15 +204,11 @@ describe("same rate (no FX effect)", () => {
       close_rate: rate,
       basis: 100,
       realized: 50,
-      commission: -1,
     });
 
-    // realized_uah should be (realized + commission) * rate = (50 - 1) * 40 = 1960
+    // realized_uah = realized * rate = 50 * 40 = 2000
     expect(result.open_uah).toBe(4000);
     expect(result.close_uah).toBe(6000);
-    // 6000 - 4000 + (-40) = 1960
-    // expect(result.realized_uah).toBe(1960);
-    // NOTE: we do not need touch commissions
     expect(result.realized_uah).toBe(6000 - 4000); // 2000
   });
 
@@ -256,15 +218,11 @@ describe("same rate (no FX effect)", () => {
       close_rate: rate,
       basis: -100,
       realized: 50,
-      commission: -1,
     });
 
     // buyback = 100 - 50 = 50
     expect(result.open_uah).toBe(50 * 40); // 2000
     expect(result.close_uah).toBe(100 * 40); // 4000
-    // 4000 - 2000 + (-40) = 1960
-    // expect(result.realized_uah).toBe(1960);
-    // NOTE: we do not need touch commissions
     expect(result.realized_uah).toBe(4000 - 2000); // 2000
   });
 });
@@ -279,14 +237,10 @@ describe("real IB examples", () => {
       close_rate: 42,
       basis: 495.4,
       realized: 277.58,
-      commission: -1.02,
     });
 
     expect(result.open_uah).toBeCloseTo(495.4 * 40, 2); // 19816.00
     expect(result.close_uah).toBeCloseTo((495.4 + 277.58) * 42, 2); // 32465.16
-    // 32465.16 - 19816.00 + (-1.02 * 42) = 32465.16 - 19816 - 42.84 = 12606.32
-    // expect(result.realized_uah).toBeCloseTo(12606.32, 2);
-    // NOTE: we do not need touch commissions
     expect(result.realized_uah).toBeCloseTo(32465.16 - 19816, 2); // 12649.16
   });
 
@@ -297,14 +251,10 @@ describe("real IB examples", () => {
       close_rate: 42,
       basis: -39.95,
       realized: 37.09,
-      commission: -0.86,
     });
 
     expect(result.open_uah).toBeCloseTo(2.86 * 42, 2); // 120.12
     expect(result.close_uah).toBeCloseTo(39.95 * 40, 2); // 1598.00
-    // 1598.00 - 120.12 + (-0.86 * 42) = 1598 - 120.12 - 36.12 = 1441.76
-    // expect(result.realized_uah).toBeCloseTo(1441.76, 2);
-    // NOTE: we do not need touch commissions
     expect(result.realized_uah).toBeCloseTo(1598 - 120.12, 2); // 1477.88
   });
 
@@ -315,7 +265,6 @@ describe("real IB examples", () => {
       close_rate: 42,
       basis: -54.42,
       realized: 54.42,
-      commission: 0,
     });
 
     expect(result.open_uah).toBeCloseTo(0, 2);
@@ -331,15 +280,11 @@ describe("real IB examples", () => {
       close_rate: 42,
       basis: -1149.19,
       realized: 9.95,
-      commission: -0.34,
     });
 
     expect(result.open_uah).toBeCloseTo(1139.24 * 42, 2); // 47848.08
     expect(result.close_uah).toBeCloseTo(1149.19 * 40, 2); // 45967.60
-    // 45967.60 - 47848.08 + (-0.34 * 42) = -1894.76
     // USD win but UAH loss due to rising exchange rate!
-    // expect(result.realized_uah).toBeCloseTo(-1894.76, 2);
-    // NOTE: we do not need touch commissions
     expect(result.realized_uah).toBeCloseTo(45967.6 - 47848.08, 2); // -1880.48
   });
 
@@ -350,7 +295,6 @@ describe("real IB examples", () => {
       close_rate: 42,
       basis: -164.95,
       realized: 164.95,
-      commission: 0,
     });
 
     expect(result.open_uah).toBe(0); // buyback = 164.95 - 164.95 = 0
@@ -364,14 +308,10 @@ describe("real IB examples", () => {
       close_rate: 42,
       basis: 74.66,
       realized: -73.88,
-      commission: -1.22,
     });
 
     expect(result.open_uah).toBeCloseTo(74.66 * 40, 2); // 2986.40
     expect(result.close_uah).toBeCloseTo((74.66 + -73.88) * 42, 2); // 32.76
-    // 32.76 - 2986.40 + (-1.22 * 42) = 32.76 - 2986.4 - 51.24 = -3004.88
-    // expect(result.realized_uah).toBeCloseTo(-3004.88, 2);
-    // NOTE: we do not need touch commissions
     expect(result.realized_uah).toBeCloseTo(32.76 - 2986.4, 2); // -2953.64
   });
 
@@ -382,7 +322,6 @@ describe("real IB examples", () => {
       close_rate: 42,
       basis: -479.78,
       realized: 479.78,
-      commission: 0,
     });
 
     expect(result.open_uah).toBe(0); // buyback = 479.78 - 479.78 = 0
@@ -398,13 +337,12 @@ describe("real IB examples", () => {
 describe("real fixture data", () => {
   describe("amd.htm trades", () => {
     it("AMD 13MAR26 190 P — long put, losing trade (closed normally)", () => {
-      // basis=714.99, realized=-696.44, commission=-1.45
+      // basis=714.99, realized=-696.44
       const result = uah({
         open_rate: 40,
         close_rate: 42,
         basis: 714.99,
         realized: -696.44,
-        commission: -1.45,
       });
 
       // Long: open_uah = basis * open_rate = 714.99 * 40 = 28599.60
@@ -416,13 +354,12 @@ describe("real fixture data", () => {
     });
 
     it("AMD stock lot 1 — long stock from assignment, winning", () => {
-      // basis=1489.44, realized=108.38, commission=-0.34
+      // basis=1489.44, realized=108.38
       const result = uah({
         open_rate: 40,
         close_rate: 42,
         basis: 1489.44,
         realized: 108.38,
-        commission: -0.34,
       });
 
       expect(result.open_uah).toBeCloseTo(1489.44 * 40, 2); // 59577.60
@@ -431,14 +368,13 @@ describe("real fixture data", () => {
     });
 
     it("DY 20MAR26 410 P — short put, losing trade (bear put spread leg)", () => {
-      // basis=-2188.95, realized=-3512.10, commission=-1.05
+      // basis=-2188.95, realized=-3512.10
       // buyback = |basis| - realized = 2188.95 - (-3512.10) = 5701.05
       const result = uah({
         open_rate: 40,
         close_rate: 42,
         basis: -2188.95,
         realized: -3512.1,
-        commission: -1.05,
       });
 
       const buyback = 2188.95 - -3512.1; // 5701.05
@@ -456,7 +392,6 @@ describe("real fixture data", () => {
         close_rate: 42,
         basis: 234.86,
         realized: 373.08,
-        commission: 0,
       });
 
       expect(result.open_uah).toBeCloseTo(234.86 * 40, 2); // 9394.40
@@ -465,14 +400,13 @@ describe("real fixture data", () => {
     });
 
     it("QQQ stock buyback — short stock, winning", () => {
-      // basis=-30397.14, realized=455.28, commission=-0.36
+      // basis=-30397.14, realized=455.28
       // buyback = 30397.14 - 455.28 = 29941.86
       const result = uah({
         open_rate: 40,
         close_rate: 42,
         basis: -30397.14,
         realized: 455.28,
-        commission: -0.36,
       });
 
       const buyback = 30397.14 - 455.28; // 29941.86
@@ -488,7 +422,6 @@ describe("real fixture data", () => {
         close_rate: 42,
         basis: 11.7,
         realized: -11.7,
-        commission: 0,
       });
 
       expect(result.open_uah).toBeCloseTo(11.7 * 40, 2); // 468.00
@@ -504,7 +437,6 @@ describe("real fixture data", () => {
         close_rate: 42,
         basis: -61.3,
         realized: 61.3,
-        commission: 0,
       });
 
       expect(result.open_uah).toBeCloseTo(0, 2); // buyback = 61.30 - 61.30 = 0
@@ -519,7 +451,6 @@ describe("real fixture data", () => {
         close_rate: 42,
         basis: 6.7,
         realized: -6.7,
-        commission: 0,
       });
 
       expect(result.open_uah).toBeCloseTo(6.7 * 40, 2); // 268.00
@@ -528,13 +459,12 @@ describe("real fixture data", () => {
     });
 
     it("AVAV 06MAR26 235 P — long put, losing trade", () => {
-      // basis=610.25, realized=-537.30, commission=-1.05
+      // basis=610.25, realized=-537.30
       const result = uah({
         open_rate: 40,
         close_rate: 42,
         basis: 610.25,
         realized: -537.3,
-        commission: -1.05,
       });
 
       expect(result.open_uah).toBeCloseTo(610.25 * 40, 2); // 24410.00
@@ -543,14 +473,13 @@ describe("real fixture data", () => {
     });
 
     it("AVAV 06MAR26 240 P — short put, winning trade (spread leg)", () => {
-      // basis=-726.75, realized=621.70, commission=-1.05
+      // basis=-726.75, realized=621.70
       // buyback = 726.75 - 621.70 = 105.05
       const result = uah({
         open_rate: 40,
         close_rate: 42,
         basis: -726.75,
         realized: 621.7,
-        commission: -1.05,
       });
 
       const buyback = 726.75 - 621.7; // 105.05

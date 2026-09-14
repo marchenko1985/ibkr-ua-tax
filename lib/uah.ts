@@ -23,7 +23,7 @@
  *   so buyback = |basis| - |basis| = 0, naturally giving open_uah = 0 (no buyback needed).
  *   Verified against 14 real expired short positions across multiple IBKR statements.
  */
-export function uah({ open_rate, close_rate, basis, realized, commission }: { open_rate: number; close_rate: number; basis: number; realized: number; commission: number }) {
+export function uah({ open_rate, close_rate, basis, realized }: { open_rate: number; close_rate: number; basis: number; realized: number }) {
   const is_long = basis > 0;
 
   let open_uah = 0;
@@ -42,10 +42,8 @@ export function uah({ open_rate, close_rate, basis, realized, commission }: { op
     close_uah = Math.abs(credit) * open_rate;
   }
 
-  const commission_uah = commission * close_rate;
-
+  // commissions are not touched, IBKR already includes them in basis and realized P/L
   const realized_uah = close_uah - open_uah;
-  // + commission_uah; // note: we do not need to touch commissions at all, because they are already included in realized P&L, so we just ignore them here
 
   return {
     open_uah,

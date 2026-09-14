@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { enrich } from "./enrich";
 import { extract } from "./extract";
 import { withRates } from "./fetchRates";
@@ -16,7 +16,9 @@ const qqqRates = {
 
 function find(trades: Trade[], predicate: (trade: Trade) => boolean): Trade {
   const trade = trades.find(predicate);
-  if (!trade) throw new Error("trade not found");
+  if (!trade) {
+    throw new Error("trade not found");
+  }
   return trade;
 }
 
