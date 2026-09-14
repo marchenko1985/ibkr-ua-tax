@@ -1,10 +1,12 @@
 import { rateFor } from "./rates";
 
 /**
- * Parses dividends from Interactive Brokers statements report.
+ * Parses dividends from Interactive Brokers statements report ("Combined Dividends" section).
  *
- * Each "Combined Dividends" row is matched with "Withholding Tax" rows by date and identifier
- * (the part of the description before " ("), withholding amounts are negative.
+ * Taxable income is the gross dividend amount converted with the NBU rate of the accrual date
+ * (Tax Code 164.4, rate 167.5.4). Tax withheld abroad ("Withholding Tax" section) is ignored:
+ * it does not reduce the tax base, and crediting it requires a certificate from the foreign tax
+ * authority (13.5, 170.11.2) — a broker statement is not such a certificate.
  *
  * @param document parsed HTML document
  * @returns dividends, id is the position of the row in the statement, stable identity for UI
@@ -15,23 +17,12 @@ export function extractDividends(document: Document) {
     .map((tr, index) => ({
       id: index + 1,
       date: tr.querySelector("td:nth-child(1)")?.textContent ?? "",
-      identifier: tr.querySelector("td:nth-child(2)")?.textContent?.split(" (")?.shift() ?? "",
+      identifier: tr.querySelector("td:nth-child(2)")?.textContent.split(" (").at(0) ?? "",
       description: tr.querySelector("td:nth-child(2)")?.textContent ?? "",
-      amount: Number(tr.querySelector("td:nth-child(3)")?.textContent?.replace(",", "")),
-    }))
-    .map((div) => ({
-      ...div,
-      tax: Array.from(document.querySelectorAll('div[id^="tblWithholdingTax_"] table tbody tr'))
-        .filter((tr) => tr.querySelector("td:nth-child(1)")?.textContent === div.date && tr.querySelector("td:nth-child(2)")?.textContent?.startsWith(div.identifier))
-        .map((tr) => Number(tr.querySelector("td:nth-child(3)")?.textContent?.replace(",", "")))
-        .reduce((a, b) => a + b, 0),
-    }))
-    .map((div) => ({
-      ...div,
-      income: div.amount + div.tax, // note we are using plus here - because tax is negative
+      amount: Number(tr.querySelector("td:nth-child(3)")?.textContent.replaceAll(",", "")),
       rate: 0,
       rate_estimated: false,
-      income_uah: 0,
+      amount_uah: 0,
     }));
 }
 
@@ -44,7 +35,7 @@ export function withDividendRates(dividends: Dividend[], rates: Record<string, n
       ...div,
       rate,
       rate_estimated: estimated,
-      income_uah: div.income * rate,
+      amount_uah: div.amount * rate,
     };
   });
 }

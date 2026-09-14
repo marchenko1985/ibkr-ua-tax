@@ -33,7 +33,7 @@ src/
     statement.ts               Statement = { document, trades, dividends }; one NBU request for all dates
     validate.ts                statement settings check; wrong settings → no calculations, list of settings to fix
     extract.ts                 trades (closed lots) from the statement HTML
-    dividends.ts               dividends and withholding tax
+    dividends.ts               dividends, taxed on gross amount (withholding tax ignored)
     rates.ts                   NBU rates: fetch, parse, rateFor (average of sibling days when missing)
     enrich.ts, uah.ts          rates + USD/UAH values of trades
     totals.ts                  totals and taxes
@@ -75,4 +75,7 @@ npm run upgrade        # bump all dependencies to latest, including majors
 
 - Trade codes (`C`, `O`, `A`, `Ex`, `Ep`, ...) and the long/short UAH formulas are documented in comments at the top of `src/lib/extract.ts` and `src/lib/uah.ts` — read them before touching calculations.
 - Assigned / exercised options are not taxable events; their economics move into the stock basis.
+- Rates (Tax Code, checked on zakon.rada.gov.ua, edition 31.05.2026): trades 18% ПДФО (167.1), dividends from non-residents 9% (167.5.4, 170.11.1 "а"), military levy 5% on both (p. 16-1 subsection 10 section XX).
+- Dividends are taxed on the gross amount at the NBU rate of the accrual date (164.4). Tax withheld abroad is ignored: crediting it needs a legalized certificate from the foreign tax authority (13.5, 170.11.2), a broker statement is not one. So the guide does not ask for the Withholding Tax section and the preview does not show it.
+- The original English IBKR statement is always attached to the declaration; the translated preview is an optional extra copy for inspectors who ask for it, not a notarized translation.
 - NBU exchange rates are fetched through a Cloudflare worker proxy (`proxy.marchenko-alexandr.workers.dev`) to get around CORS.

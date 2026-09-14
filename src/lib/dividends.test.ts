@@ -30,11 +30,9 @@ describe("extractDividends", () => {
         identifier: "CCL(PA1436583006) Cash Dividend USD 0.15 per Share",
         description: "CCL(PA1436583006) Cash Dividend USD 0.15 per Share (Ordinary Dividend)",
         amount: 3.45,
-        tax: 0,
-        income: 3.45,
         rate: 0,
         rate_estimated: false,
-        income_uah: 0,
+        amount_uah: 0,
       },
     ]);
   });
@@ -43,7 +41,7 @@ describe("extractDividends", () => {
     expect(extractDividends(loadFixture("files/amd.htm"))).toEqual([]);
   });
 
-  it("matches withholding tax by date and identifier", () => {
+  it("gross amount is the income, withholding tax section is ignored", () => {
     const document = statement({
       dividends: [
         ["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share (Ordinary Dividend)", "26.00"],
@@ -58,53 +56,29 @@ describe("extractDividends", () => {
     const dividends = extractDividends(document);
 
     expect(dividends).toHaveLength(2);
-    expect(dividends[0]).toMatchObject({ identifier: "AAPL(US0378331005) Cash Dividend USD 0.26 per Share", amount: 26, tax: -3.9, income: 22.1 });
-    expect(dividends[1]).toMatchObject({ identifier: "MSFT(US5949181045) Cash Dividend USD 0.83 per Share", amount: 83, tax: -12.45, income: 70.55 });
-  });
-
-  it("sums several withholding rows of the same dividend (e.g. tax and its correction)", () => {
-    const document = statement({
-      dividends: [["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share (Ordinary Dividend)", "26.00"]],
-      withholding: [
-        ["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share - US Tax", "-7.80", ""],
-        ["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share - US Tax", "3.90", ""],
-      ],
-    });
-
-    expect(extractDividends(document)[0]).toMatchObject({ tax: -3.9, income: 22.1 });
-  });
-
-  it("ignores withholding rows of other dates, e.g. previous year adjustments", () => {
-    const document = statement({
-      dividends: [["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share (Ordinary Dividend)", "26.00"]],
-      withholding: [
-        ["2025-02-05", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share - US Tax", "3.52", ""],
-        ["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share - US Tax", "-3.90", ""],
-      ],
-    });
-
-    expect(extractDividends(document)[0]).toMatchObject({ tax: -3.9, income: 22.1 });
+    expect(dividends[0]).toMatchObject({ identifier: "AAPL(US0378331005) Cash Dividend USD 0.26 per Share", amount: 26 });
+    expect(dividends[1]).toMatchObject({ identifier: "MSFT(US5949181045) Cash Dividend USD 0.83 per Share", amount: 83 });
   });
 
   it("removes thousands separator from amount", () => {
     const document = statement({
-      dividends: [["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share (Ordinary Dividend)", "1,026.00"]],
+      dividends: [["2026-03-10", "AAPL(US0378331005) Cash Dividend USD 0.26 per Share (Ordinary Dividend)", "1,026,000.00"]],
       withholding: [],
     });
 
-    expect(extractDividends(document)[0]?.amount).toBe(1026);
+    expect(extractDividends(document)[0]?.amount).toBe(1026000);
   });
 });
 
 describe("withDividendRates", () => {
-  it("converts income to UAH with the rate of the dividend date", () => {
+  it("converts amount to UAH with the rate of the dividend date", () => {
     const dividends = extractDividends(loadFixture("files/qqq.htm"));
 
     const [dividend] = withDividendRates(dividends, { "2026-02-26": 43.0, "2026-02-27": 43.5 });
 
     expect(dividend?.rate).toBe(43.5);
     expect(dividend?.rate_estimated).toBe(false);
-    expect(dividend?.income_uah).toBeCloseTo(3.45 * 43.5, 6); // 150.075
+    expect(dividend?.amount_uah).toBeCloseTo(3.45 * 43.5, 6); // 150.075
   });
 
   it("missing rate is estimated from sibling days", () => {
@@ -114,7 +88,7 @@ describe("withDividendRates", () => {
 
     expect(dividend?.rate).toBe(43.5);
     expect(dividend?.rate_estimated).toBe(true);
-    expect(dividend?.income_uah).toBeCloseTo(3.45 * 43.5, 6);
+    expect(dividend?.amount_uah).toBeCloseTo(3.45 * 43.5, 6);
   });
 
   it("fails when rate can not be estimated", () => {

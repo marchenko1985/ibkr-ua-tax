@@ -5,7 +5,7 @@ import type { Trade } from "./extract";
 const PERSONAL_INCOME_TAX_RATE = 0.18;
 /** Military levy (військовий збір) */
 const MILITARY_TAX_RATE = 0.05;
-/** Dividends tax — NOTE: to be confirmed, foreign dividends are likely taxed at 18% (see README TODO) */
+/** Personal income tax (ПДФО) on dividends from non-residents, half of the general rate (Tax Code 167.5.4) */
 const DIVIDENDS_TAX_RATE = 0.09;
 
 /**
@@ -29,19 +29,16 @@ export function tradesTotals(trades: Trade[]) {
   };
 }
 
+/** Totals and taxes for dividends, taxed on gross amount (see extractDividends) */
 export function dividendsTotals(dividends: Dividend[]) {
-  const total_income_uah = dividends.reduce((acc, div) => acc + div.income_uah, 0);
-  const dividends_tax = total_income_uah * DIVIDENDS_TAX_RATE;
-  const military_tax = total_income_uah * MILITARY_TAX_RATE;
-  const total_tax = dividends_tax + military_tax;
+  const amount_uah = dividends.reduce((acc, div) => acc + div.amount_uah, 0);
+  const dividends_tax = amount_uah * DIVIDENDS_TAX_RATE;
+  const military_tax = amount_uah * MILITARY_TAX_RATE;
   return {
-    amount_total: dividends.reduce((acc, div) => acc + div.amount, 0),
-    us_tax_total: dividends.reduce((acc, div) => acc + div.tax, 0),
-    income_total: dividends.reduce((acc, div) => acc + div.income, 0),
-    total_income_uah,
+    amount: dividends.reduce((acc, div) => acc + div.amount, 0),
+    amount_uah,
     dividends_tax,
     military_tax,
-    total_tax,
-    net_income_uah: total_income_uah - total_tax,
+    total_tax: dividends_tax + military_tax,
   };
 }

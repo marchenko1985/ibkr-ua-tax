@@ -6,7 +6,6 @@ import { CodesSection } from "./codes-section";
 import { DividendsSection } from "./dividends-section";
 import { TradesSection } from "./trades-section";
 import { translatePeriod } from "./translations";
-import { WithholdingSection } from "./withholding-section";
 
 /** Translated printable copy of the statement, attached to the declaration as proving document */
 export function PreviewCard({ statement }: { statement: Statement }) {
@@ -41,10 +40,7 @@ export function PreviewCard({ statement }: { statement: Statement }) {
           <div className="text-center text-sm">Interactive Brokers LLC, Two Pickwick Plaza, Greenwich, CT 06830</div>
           <AccountSection document={document} />
           <TradesSection document={document} />
-          <div className="grid grid-cols-2 gap-4">
-            <DividendsSection document={document} />
-            <WithholdingSection document={document} />
-          </div>
+          <DividendsSection document={document} />
           <CodesSection document={document} />
           <div className="text-center text-xs">{generated}</div>
         </div>

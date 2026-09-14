@@ -60,19 +60,10 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
           <TableHead>
             <Tooltip>
               <TooltipTrigger>Amount</TooltipTrigger>
-              <TooltipContent>Сума нарахованих дивідендів</TooltipContent>
-            </Tooltip>
-          </TableHead>
-          <TableHead>
-            <Tooltip>
-              <TooltipTrigger>US Tax</TooltipTrigger>
-              <TooltipContent>Сума податку США на дивіденди</TooltipContent>
-            </Tooltip>
-          </TableHead>
-          <TableHead>
-            <Tooltip>
-              <TooltipTrigger>Income</TooltipTrigger>
-              <TooltipContent>Чистий дохід від дивідендів</TooltipContent>
+              <TooltipContent>
+                <p>Сума нарахованих дивідендів</p>
+                <p className="mt-1 text-muted-foreground text-xs">Податок, утриманий за кордоном, не віднімається від бази оподаткування</p>
+              </TooltipContent>
             </Tooltip>
           </TableHead>
           <TableHead className="border-l">
@@ -83,8 +74,8 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
           </TableHead>
           <TableHead className="border-l">
             <Tooltip>
-              <TooltipTrigger>Income in UAH</TooltipTrigger>
-              <TooltipContent>Дохід від дивідендів у гривнях</TooltipContent>
+              <TooltipTrigger>Amount in UAH</TooltipTrigger>
+              <TooltipContent>Сума дивідендів у гривнях</TooltipContent>
             </Tooltip>
           </TableHead>
         </TableRow>
@@ -94,9 +85,7 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
           <TableRow key={div.id}>
             <TableCell>{div.date}</TableCell>
             <TableCell>{div.identifier}</TableCell>
-            <TableCell className="text-right">{div.amount}</TableCell>
-            <TableCell className="text-right">{div.tax}</TableCell>
-            <TableCell className="text-right">{div.income.toFixed(2)}</TableCell>
+            <TableCell className="text-right">{div.amount.toFixed(2)}</TableCell>
             <TableCell className="border-l text-right">
               <Tooltip>
                 <TooltipTrigger className={cn(div.rate_estimated && "text-yellow-600")}>
@@ -113,12 +102,11 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
             </TableCell>
             <TableCell className="border-l text-right">
               <Tooltip>
-                <TooltipTrigger>{div.income_uah.toFixed(2)}</TooltipTrigger>
+                <TooltipTrigger>{div.amount_uah.toFixed(2)}</TooltipTrigger>
                 <TooltipContent>
-                  <p>Дохід від дивідендів у гривнях</p>
-                  <p>Порахований як:</p>
+                  <p>Сума дивідендів у гривнях</p>
                   <p>
-                    {div.income} * {div.rate} = {div.income_uah}
+                    {div.amount} × {div.rate} = {div.amount_uah.toFixed(2)}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -129,27 +117,21 @@ function DividendsTable({ dividends }: { dividends: Dividend[] }) {
       <TableFooter className="text-right font-bold">
         <TableRow>
           <TableCell colSpan={2}>Загалом:</TableCell>
-          <TableCell>{total.amount_total.toFixed(2)}</TableCell>
-          <TableCell>{total.us_tax_total.toFixed(2)}</TableCell>
-          <TableCell>{total.income_total.toFixed(2)}</TableCell>
+          <TableCell>{total.amount.toFixed(2)}</TableCell>
           <TableCell className="border-l" />
-          <TableCell className="border-l">{total.total_income_uah.toFixed(2)}</TableCell>
+          <TableCell className="border-l">{total.amount_uah.toFixed(2)}</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell colSpan={6}>Податок з дивідендів (9%):</TableCell>
+          <TableCell colSpan={4}>Податок з доходу ПДФО (9%):</TableCell>
           <TableCell className="border-l">{total.dividends_tax.toFixed(2)}</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell colSpan={6}>Війсковий збір (5%):</TableCell>
+          <TableCell colSpan={4}>Військовий збір (5%):</TableCell>
           <TableCell className="border-l">{total.military_tax.toFixed(2)}</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell colSpan={6}>Податків до сплати (підставити у поле 10.10 податкового звіту):</TableCell>
+          <TableCell colSpan={4}>Податків до сплати (підставити у поле 10.10 податкового звіту):</TableCell>
           <TableCell className="border-l">{total.total_tax.toFixed(2)}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell colSpan={6}>Чистий дохід у гривнях:</TableCell>
-          <TableCell className="border-l">{total.net_income_uah.toFixed(2)}</TableCell>
         </TableRow>
       </TableFooter>
     </Table>

@@ -115,20 +115,11 @@ describe("files/ytd/proper.htm", () => {
       expect(new Set(dividends.map((div) => div.identifier.split("(")[0]))).toEqual(new Set(["BND", "TLT", "CCL", "POWL", "VOO"]));
     });
 
-    it("withholding tax matched by date, previous year adjustments ignored", () => {
-      expect(dividend("2026-02-04", "BND")).toMatchObject([{ amount: 24.55, tax: -3.68 }]);
-      expect(dividend("2026-03-31", "VOO")).toMatchObject([{ amount: 28.84, tax: -4.33 }]);
-    });
-
-    it("two dividends of the same symbol on one day get their own withholding", () => {
-      expect(dividend("2026-07-07", "TLT")).toMatchObject([
-        { amount: 23.85, tax: -3.58 },
-        { amount: 13.36, tax: -2 },
-      ]);
-    });
-
-    it("withholding and its reversal on the same day net to zero", () => {
-      expect(dividend("2026-05-29", "CCL")).toMatchObject([{ amount: 3.45, tax: 0, income: 3.45 }]);
+    it("gross amounts, withholding tax section is ignored", () => {
+      expect(dividend("2026-02-04", "BND")).toMatchObject([{ amount: 24.55 }]);
+      expect(dividend("2026-07-07", "TLT")).toMatchObject([{ amount: 23.85 }, { amount: 13.36 }]);
+      expect(dividend("2026-05-29", "CCL")).toMatchObject([{ amount: 3.45 }]);
+      expect(dividends.every((div) => !("tax" in div))).toBe(true);
     });
   });
 });

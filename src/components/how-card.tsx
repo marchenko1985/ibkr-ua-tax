@@ -32,9 +32,6 @@ export function HowCard() {
               <li>
                 <b>Combined Dividends</b> - загальна інформація по всім дивідендам
               </li>
-              <li>
-                <b>Withholding Tax</b> - інформація про утриманий податок США
-              </li>
             </ul>
           </li>
           <li>

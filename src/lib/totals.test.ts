@@ -100,14 +100,22 @@ describe("dividendsTotals", () => {
 
     const total = dividendsTotals(dividends);
 
-    expect(total.amount_total).toBe(3.45);
-    expect(total.us_tax_total).toBe(0);
-    expect(total.income_total).toBe(3.45);
-    expect(total.total_income_uah).toBeCloseTo(148.5225, 6); // 3.45 × 43.05
-    // NOTE: 9% is the current behaviour, the law is to be confirmed (see README TODO)
-    expect(total.dividends_tax).toBeCloseTo(13.367025, 6);
-    expect(total.military_tax).toBeCloseTo(7.426125, 6);
+    expect(total.amount).toBe(3.45);
+    expect(total.amount_uah).toBeCloseTo(148.5225, 6); // 3.45 × 43.05
+    expect(total.dividends_tax).toBeCloseTo(13.367025, 6); // 9%
+    expect(total.military_tax).toBeCloseTo(7.426125, 6); // 5%
     expect(total.total_tax).toBeCloseTo(20.79315, 6);
-    expect(total.net_income_uah).toBeCloseTo(127.72935, 6);
+  });
+
+  it("files/ytd/proper.htm — tax on gross amounts, withholding tax section ignored", () => {
+    const rates = { "2026-01-01": 42, "2026-12-31": 42 }; // every dividend date is estimated as 42
+    const dividends = withDividendRates(extractDividends(loadFixture("files/ytd/proper.htm")), rates);
+
+    const total = dividendsTotals(dividends);
+
+    // BND 196.13 + TLT 303.22 + CCL 10.35 + POWL 2.43 + VOO 58.24, no withholding subtracted
+    expect(total.amount).toBeCloseTo(570.37, 6);
+    expect(total.amount_uah).toBeCloseTo(570.37 * 42, 6);
+    expect(total.total_tax).toBeCloseTo(570.37 * 42 * 0.14, 6);
   });
 });
