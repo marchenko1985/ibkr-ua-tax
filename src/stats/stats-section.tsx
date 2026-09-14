@@ -14,7 +14,7 @@ export function StatsSection({ statement }: { statement: Statement }) {
   }
 
   return (
-    <section className="@container/main flex flex-col gap-4 print:hidden">
+    <section data-nav="Статистика" className="@container/main flex flex-col gap-4 print:hidden">
       <div className="mt-8 flex flex-col gap-1">
         <h2 className="font-semibold text-2xl tracking-tight">Статистика опціонів</h2>
         <p className="max-w-3xl text-muted-foreground text-sm">Не впливає на податки. Розраховано за закритими опціонними позиціями звіту: ноги, відкриті в один день по одному базовому активу, об'єднані в одну позицію; призначені та виконані опціони не враховуються. Суми в доларах, з урахуванням комісій.</p>

@@ -131,4 +131,13 @@
   html {
     @apply font-sans;
   }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  /* sections jumped to from the sticky section menu stay below it */
+  [data-nav] {
+    scroll-margin-top: 4rem;
+  }
 }

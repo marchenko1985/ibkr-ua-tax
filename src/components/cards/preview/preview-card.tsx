@@ -20,7 +20,7 @@ export function PreviewCard({ statement }: { statement: Statement }) {
   // consider: we might use `print:break-before-page` for sections to be printed on separate pages
 
   return (
-    <Card className="print:p-0 print:shadow-none print:ring-0">
+    <Card data-nav="Перегляд звіту" className="print:p-0 print:shadow-none print:ring-0">
       <CardHeader className="print:hidden">
         <CardTitle>Попередній перегляд звіту</CardTitle>
         <CardDescription>Попередній перегляд сформованного та перекладеного звіту для податкової</CardDescription>

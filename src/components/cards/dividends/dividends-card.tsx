@@ -14,7 +14,7 @@ export function DividendsCard({ statement }: { statement: Statement }) {
 
   if (dividends.length === 0) {
     return (
-      <Card className="print:hidden">
+      <Card data-nav="Дивіденди" className="print:hidden">
         <CardHeader>
           <CardTitle>Дивіденди</CardTitle>
         </CardHeader>
@@ -26,7 +26,7 @@ export function DividendsCard({ statement }: { statement: Statement }) {
   const dates = dividends.map((div) => div.date).sort((a, b) => a.localeCompare(b));
 
   return (
-    <Card className="print:hidden">
+    <Card data-nav="Дивіденди" className="print:hidden">
       <CardHeader>
         <CardTitle>Дивіденди</CardTitle>
         <CardDescription>

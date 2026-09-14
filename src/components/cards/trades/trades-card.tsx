@@ -16,7 +16,7 @@ export function TradesCard({ statement }: { statement: Statement }) {
 
   if (trades.length === 0) {
     return (
-      <Card className="print:hidden">
+      <Card data-nav="Угоди" className="print:hidden">
         <CardHeader>
           <CardTitle>Угоди</CardTitle>
         </CardHeader>
@@ -29,7 +29,7 @@ export function TradesCard({ statement }: { statement: Statement }) {
   const convertedCount = trades.filter((t) => t.is_assignment || t.is_exercise).length;
 
   return (
-    <Card className="print:hidden">
+    <Card data-nav="Угоди" className="print:hidden">
       <CardHeader>
         <CardTitle>Угоди</CardTitle>
         <CardDescription>

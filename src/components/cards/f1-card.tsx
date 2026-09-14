@@ -11,7 +11,7 @@ export function F1Card({ statement }: { statement: Statement }) {
   }
 
   return (
-    <Card className="print:hidden">
+    <Card data-nav="Ф1" className="print:hidden">
       <CardHeader>
         <CardTitle>Додаток Ф1</CardTitle>
         <CardDescription>

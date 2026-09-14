@@ -1,5 +1,6 @@
 import type { Statement } from "@/lib/statement";
 import { StatsSection } from "@/stats/stats-section";
+import { SectionNav } from "../section-nav";
 import { DividendsCard } from "./dividends/dividends-card";
 import { EstimatedRatesCard } from "./estimated-rates-card";
 import { F1Card } from "./f1-card";
@@ -9,11 +10,12 @@ import { TradesCard } from "./trades/trades-card";
 /**
  * Cards shown for a loaded statement, in order.
  * Every card receives the whole statement and decides itself whether it has something to show,
- * so adding or removing a card is one line here.
+ * so adding or removing a card is one line here. Cards listed in the section menu carry `data-nav="<label>"`.
  */
 export function StatementCards({ statement }: { statement: Statement }) {
   return (
     <>
+      <SectionNav />
       <EstimatedRatesCard statement={statement} />
       <TradesCard statement={statement} />
       <F1Card statement={statement} />
