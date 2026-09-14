@@ -13,10 +13,10 @@
 
   "files": {
     "ignoreUnknown": true,
-    // components/ui — vendored shadcn components, kept byte-identical to the registry
+    // src/components/ui — vendored shadcn components, kept byte-identical to the registry
     // so re-adding them produces clean diffs.
     // files — anonymized IBKR statements used as test fixtures.
-    "includes": ["**", "!components/ui", "!files"]
+    "includes": ["**", "!src/components/ui", "!files"]
   },
 
   "formatter": {
@@ -26,7 +26,7 @@
   },
 
   "css": {
-    // Tailwind v4 @theme / @apply / @custom-variant in index.css
+    // Tailwind v4 @theme / @apply / @custom-variant in src/index.css
     "parser": { "tailwindDirectives": true }
   },
 
@@ -107,7 +107,7 @@
     {
       // Tests and test helpers: long describe blocks, literal expected numbers and
       // realistic identifiers are the point here; they run in Node.
-      "includes": ["**/*.test.ts", "lib/fixture.ts"],
+      "includes": ["**/*.test.ts", "src/lib/fixture.ts"],
       "linter": {
         "rules": {
           "complexity": {
@@ -133,7 +133,7 @@
     },
     {
       // TODO: temporary, remove when the component is split into smaller ones
-      "includes": ["components/trades-card.tsx"],
+      "includes": ["src/components/trades-card.tsx"],
       "linter": {
         "rules": {
           "complexity": { "noExcessiveCognitiveComplexity": "off" }
@@ -143,7 +143,7 @@
     {
       // TODO: temporary, remove when the component is reworked; renders static rows copied
       // from the statement, they are never reordered, so index keys are harmless for now
-      "includes": ["components/preview-card.tsx"],
+      "includes": ["src/components/preview-card.tsx"],
       "linter": {
         "rules": {
           "suspicious": { "noArrayIndexKey": "off" }

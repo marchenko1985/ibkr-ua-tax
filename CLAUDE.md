@@ -19,7 +19,7 @@ Key idea: calculations are made from the same HTML statement that is attached to
 
 Wrong numbers in a tax report are worse than no numbers. So:
 
-- Extraction (`lib/extract.ts`) and calculation (`lib/uah.ts`, `lib/enrich.ts`) must be covered by tests, and every change there comes with tests.
+- Extraction (`src/lib/extract.ts`) and calculation (`src/lib/uah.ts`, `src/lib/enrich.ts`) must be covered by tests, and every change there comes with tests.
 - IBKR report layout depends on statement settings — the number and order of columns changes (e.g. "Profit and Loss: Realized P/L Only" removes `C. Price` and `MTM P/L`). A one-column shift silently produces completely wrong amounts. Treat column mapping with extreme care.
 - Test fixtures live in `files/` and are **anonymized**. This repository is **public** — never commit a real statement, account id, name, or address.
 
@@ -45,11 +45,11 @@ npm run upgrade        # bump all dependencies to latest, including majors
 - Biome (`biome.jsonc`) starts from **all** rules (`"preset": "all"`) plus picked nursery rules; every rule turned off has a comment with the reason. Don't turn rules off or add `biome-ignore` without agreeing first.
 - Complexity limits: 80 lines per function, cognitive complexity 20, 400 lines per file, 5 params. Tests are exempt. Temporary per-file exceptions are marked `TODO` in `biome.jsonc` and must go away.
 - TypeScript is strict, including `noUncheckedIndexedAccess`.
-- `components/ui/` holds vendored shadcn components — excluded from Biome, knip and jscpd; re-add them with the shadcn CLI instead of editing.
+- `src/components/ui/` holds vendored shadcn components — excluded from Biome, knip and jscpd; re-add them with the shadcn CLI instead of editing.
 - No React Compiler (dropped with `@vitejs/plugin-react` 6); memoize by hand only where it matters.
 
 ## Domain notes
 
-- Trade codes (`C`, `O`, `A`, `Ex`, `Ep`, ...) and the long/short UAH formulas are documented in comments at the top of `lib/extract.ts` and `lib/uah.ts` — read them before touching calculations.
+- Trade codes (`C`, `O`, `A`, `Ex`, `Ep`, ...) and the long/short UAH formulas are documented in comments at the top of `src/lib/extract.ts` and `src/lib/uah.ts` — read them before touching calculations.
 - Assigned / exercised options are not taxable events; their economics move into the stock basis.
 - NBU exchange rates are fetched through a Cloudflare worker proxy (`proxy.marchenko-alexandr.workers.dev`) to get around CORS.

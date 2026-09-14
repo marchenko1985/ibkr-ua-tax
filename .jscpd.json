@@ -1,6 +1,6 @@
 {
   "pattern": "**/*.{ts,tsx,css}",
-  "ignore": ["**/node_modules/**", "**/dist/**", "components/ui/**", "private/**", "files/**"],
+  "ignore": ["**/node_modules/**", "**/dist/**", "src/components/ui/**", "private/**", "files/**"],
   "gitignore": true,
   "minTokens": 50,
   "minLines": 5,
