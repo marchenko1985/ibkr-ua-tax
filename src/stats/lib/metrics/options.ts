@@ -1,4 +1,5 @@
 import type { Setup } from "../setups";
+import { type GroupStat, groupBy } from "./grouping";
 import { median, sum } from "./math";
 
 // Ported from optionslab app/stats/lib/metrics/options.ts
@@ -46,4 +47,32 @@ export function singleMultiExpiryStats(setups: readonly Setup[]): SingleMultiExp
     multiPnl: sum(multi.map((s) => s.realizedPnl)),
     multiWinRate: multi.length > 0 ? multi.filter((s) => s.isWinner).length / multi.length : null,
   };
+}
+
+export interface ExpiryWeek extends GroupStat {
+  /** Monday, YYYY-MM-DD */
+  weekStart: string;
+  /** Friday, YYYY-MM-DD */
+  weekEnd: string;
+}
+
+const FRIDAY_OFFSET = 4;
+
+/** Setups by the week of their earliest expiration: how much of the book rides on a single Friday */
+export function expiryWeekExposure(setups: readonly Setup[]): ExpiryWeek[] {
+  // groupBy sorts unordered keys, YYYY-MM-DD keys sort by date
+  return groupBy(setups, (s) => mondayOf(s.minExpiry)).map((stat) => ({ ...stat, weekStart: stat.key, weekEnd: addDays(stat.key, FRIDAY_OFFSET) }));
+}
+
+const SUNDAY_TO_MONDAY = -6;
+
+function mondayOf(date: string): string {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return addDays(date, day === 0 ? SUNDAY_TO_MONDAY : 1 - day);
+}
+
+function addDays(date: string, days: number): string {
+  const result = new Date(`${date}T00:00:00Z`);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result.toISOString().slice(0, "YYYY-MM-DD".length);
 }

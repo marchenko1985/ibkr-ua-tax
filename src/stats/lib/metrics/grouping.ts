@@ -1,4 +1,5 @@
 import type { Setup } from "../setups";
+import { mean } from "./math";
 
 // Ported from optionslab app/stats/lib/metrics/grouping.ts
 
@@ -58,4 +59,42 @@ export function perStrategyStats(setups: readonly Setup[]): StrategyStat[] {
       return { ...stat, name: stat.key, slug: first?.strategySlug ?? "" };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+export interface SymbolStat extends GroupStat {
+  avgHoldingDays: number | null;
+}
+
+/** Per-underlying stats, largest absolute P/L first */
+export function perSymbolStats(setups: readonly Setup[]): SymbolStat[] {
+  return groupBy(setups, (s) => s.underlyingSymbol)
+    .map((stat) => ({ ...stat, avgHoldingDays: mean(setups.filter((s) => s.underlyingSymbol === stat.key).map((s) => s.holdingDays)) }))
+    .sort((a, b) => Math.abs(b.sumPnl) - Math.abs(a.sumPnl));
+}
+
+export interface WaterfallPoint {
+  symbol: string;
+  /** invisible stacked bar lifting the visible one to the running total */
+  base: number;
+  /** visible bar height, always positive */
+  delta: number;
+  pnl: number;
+  /** running total after this symbol */
+  cumulative: number;
+}
+
+/** Largest-impact symbols, winners first, each bar floating at the running total */
+export function waterfallBySymbol(setups: readonly Setup[], limit: number): WaterfallPoint[] {
+  const top = perSymbolStats(setups)
+    .slice(0, limit)
+    .sort((a, b) => b.sumPnl - a.sumPnl);
+  const points: WaterfallPoint[] = [];
+  let running = 0;
+  for (const stat of top) {
+    // a loss bar hangs down from the previous total, so it starts at the new, lower total
+    const base = stat.sumPnl >= 0 ? running : running + stat.sumPnl;
+    running += stat.sumPnl;
+    points.push({ symbol: stat.key, base, delta: Math.abs(stat.sumPnl), pnl: stat.sumPnl, cumulative: running });
+  }
+  return points;
 }

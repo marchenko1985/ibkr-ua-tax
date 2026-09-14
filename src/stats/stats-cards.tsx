@@ -1,6 +1,9 @@
+import { Concentration } from "./cards/concentration";
 import { CreditDebitDonut } from "./cards/credit-debit-donut";
+import { DispositionEffect } from "./cards/disposition-effect";
 import { DrawdownEpisodes } from "./cards/drawdown-episodes";
 import { EquityCurve } from "./cards/equity-curve";
+import { ExpiryWeekExposure } from "./cards/expiry-week-exposure";
 import { Insights } from "./cards/insights";
 import { KpiRow } from "./cards/kpi-row";
 import { KpiRowSecondary } from "./cards/kpi-row-secondary";
@@ -16,6 +19,7 @@ import { PnlCdf } from "./cards/pnl-cdf";
 import { PnlHistogram } from "./cards/pnl-histogram";
 import { PutCallDonut } from "./cards/put-call-donut";
 import { RecentVsBaseline } from "./cards/recent-vs-baseline";
+import { RevengeTrades } from "./cards/revenge-trades";
 import { RocDistribution } from "./cards/roc-distribution";
 import { RollingMetrics } from "./cards/rolling-metrics";
 import { SectionHeader } from "./cards/section-header";
@@ -23,9 +27,11 @@ import { SentimentDonut } from "./cards/sentiment-donut";
 import { StrategyDteHeatmap } from "./cards/strategy-dte-heatmap";
 import { StrategyFrontier } from "./cards/strategy-frontier";
 import { StrategyHoldingHeatmap } from "./cards/strategy-holding-heatmap";
+import { TopSymbolsTable } from "./cards/top-symbols-table";
 import { TradeScatter } from "./cards/trade-scatter";
 import { TraderProfile } from "./cards/trader-profile";
 import { TradesPerMonth } from "./cards/trades-per-month";
+import { WaterfallBySymbol } from "./cards/waterfall-by-symbol";
 import type { Setup } from "./lib/setups";
 
 /**
@@ -71,6 +77,20 @@ export function StatsCards({ setups }: { setups: readonly Setup[] }) {
         <PnlCdf setups={setups} />
         <PnlByMonth setups={setups} />
       </div>
+
+      <SectionHeader title="Атрибуція" description="Звідки береться результат: внесок кожного базового активу, найвпливовіші активи та концентрація ризику." />
+      <WaterfallBySymbol setups={setups} />
+      <div className="grid @4xl:grid-cols-2 grid-cols-1 gap-4">
+        <TopSymbolsTable setups={setups} />
+        <Concentration setups={setups} />
+      </div>
+
+      <SectionHeader title="Поведінка" description="Чесна самоперевірка: відігрування після збитків, ефект диспозиції та скупчення експірацій в одних тижнях." />
+      <div className="grid @4xl:grid-cols-2 grid-cols-1 gap-4">
+        <RevengeTrades setups={setups} />
+        <DispositionEffect setups={setups} />
+      </div>
+      <ExpiryWeekExposure setups={setups} />
 
       <SectionHeader title="Детальні розрізи" description="Дрібні розрізи для перевірки гіпотез: дні тижня, активність за місяцями, кількість ніг, кредит/дебет, puts/calls, настрій. На малих вибірках — шум." />
       <div className="grid @4xl:grid-cols-2 grid-cols-1 gap-4">
