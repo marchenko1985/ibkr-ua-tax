@@ -17,11 +17,10 @@ export function TraderProfile({ setups }: { setups: readonly Setup[] }) {
       </CardHeader>
       <CardContent className="gap-4 text-sm">
         <ProfileLine label="Досвід">
-          <strong className="tabular-nums">{formatInt(profile.tradeCount)}</strong> закритих позицій
+          закритих позицій: <strong className="tabular-nums">{formatInt(profile.tradeCount)}</strong>
           {profile.period ? (
             <>
-              {" "}
-              за <strong className="tabular-nums">{profile.period.months} міс.</strong>{" "}
+              , період <strong className="tabular-nums">{profile.period.months} міс.</strong>{" "}
               <span className="text-muted-foreground text-xs">
                 ({profile.period.from} → {profile.period.to})
               </span>
@@ -41,7 +40,7 @@ function Details({ strategy, tone }: { strategy: ProfileStrategy; tone?: "good" 
     <>
       <span className="font-medium">{strategy.name}</span>
       {tone ? <span className={`text-xs tabular-nums ${toneClass(tone)}`}> {formatUsd(strategy.sumPnl)}</span> : null}
-      <span className="text-muted-foreground text-xs tabular-nums">{tone ? ` · ${strategy.count} позицій · ${formatPercent(strategy.winRate)} прибуткових` : ` · ${strategy.count} позицій (${formatPercent(strategy.pct)})`}</span>
+      <span className="text-muted-foreground text-xs tabular-nums">{tone ? ` · позицій: ${strategy.count} · прибуткових ${formatPercent(strategy.winRate)}` : ` · позицій: ${strategy.count} (${formatPercent(strategy.pct)})`}</span>
     </>
   );
 }

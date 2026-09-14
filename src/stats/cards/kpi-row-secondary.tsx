@@ -29,7 +29,7 @@ export function KpiRowSecondary({ setups }: { setups: readonly Setup[] }) {
         value={formatPercent(credit.weightedCaptured)}
         valueClass={pnlClass(credit.weightedCaptured)}
         footerPrimary={credit.sampleSize === 0 ? "кредитних позицій немає" : `${formatUsd(credit.totalRealizedPnl)} / ${formatUsd(credit.totalCreditReceived)}`}
-        footerSecondary={credit.sampleSize === 0 ? "" : `${formatInt(credit.sampleSize)} кредитних позицій · в середньому ${formatPercent(credit.simpleMeanCaptured)}`}
+        footerSecondary={credit.sampleSize === 0 ? "" : `кредитних позицій: ${formatInt(credit.sampleSize)} · в середньому ${formatPercent(credit.simpleMeanCaptured)}`}
       />
     </div>
   );

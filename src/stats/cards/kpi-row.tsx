@@ -11,7 +11,7 @@ export function KpiRow({ setups }: { setups: readonly Setup[] }) {
 
   return (
     <div className="grid @4xl:grid-cols-4 @md:grid-cols-2 grid-cols-1 gap-4">
-      <KpiCard description="Чистий P/L" value={formatUsd(summary.netPnl)} valueClass={pnlClass(summary.netPnl)} footerPrimary={`${formatInt(summary.count)} закритих позицій`} footerSecondary={`середнє утримання ${formatDays(summary.avgHoldingDays)}`} />
+      <KpiCard description="Чистий P/L" value={formatUsd(summary.netPnl)} valueClass={pnlClass(summary.netPnl)} footerPrimary={`закритих позицій: ${formatInt(summary.count)}`} footerSecondary={`середнє утримання ${formatDays(summary.avgHoldingDays)}`} />
       <KpiCard description="Profit factor" value={formatRatio(summary.profitFactor)} footerPrimary={quality.label} footerSecondary={quality.hint} />
       <KpiCard description="Expectancy на позицію" value={formatUsd(summary.expectancy, 2)} valueClass={pnlClass(summary.expectancy)} footerPrimary={edgeLabel(summary.expectancy)} footerSecondary="середній результат однієї позиції" />
       <KpiCard

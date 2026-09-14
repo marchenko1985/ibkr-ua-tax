@@ -44,9 +44,9 @@ function description(diff: RecentVsBaselineData) {
     return "Замало позицій для порівняння";
   }
   if (diff.baselineCount === 0) {
-    return `Останні ${diff.recentCount} позицій (немає з чим порівняти)`;
+    return `Останні позиції (${diff.recentCount}), немає з чим порівняти`;
   }
-  return `Останні ${diff.recentCount} позицій проти ${diff.baselineCount} перед ними`;
+  return `Останні позиції (${diff.recentCount}) проти попередніх (${diff.baselineCount})`;
 }
 
 function formatValue(value: number | null, format: DiffRow["format"]) {

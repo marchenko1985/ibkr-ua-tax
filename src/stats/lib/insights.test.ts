@@ -87,7 +87,7 @@ describe("recentVsBaseline", () => {
 
     // by close time: AMD, XOM, PM, QQQ, DY, NUE → baseline XOM, PM, QQQ; recent DY, NUE
     expect(diff).toMatchObject({ recentCount: 2, baselineCount: 3 });
-    const net = diff.rows[0];
+    const [net] = diff.rows;
     expect(net?.label).toBe("Чистий P/L");
     expect(net?.baseline).toBeCloseTo(237.02, 6);
     expect(net?.recent).toBeCloseTo(-903.8, 6);

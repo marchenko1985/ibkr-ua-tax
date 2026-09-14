@@ -124,7 +124,7 @@ function strategyInsights(setups: readonly Setup[], minSample: number): Insight[
       id: `strategy-loser-${worst.slug}`,
       kind: "avoid",
       title: `${worst.name} втрачає гроші`,
-      detail: `${formatSignedUsdShort(worst.sumPnl)} за ${worst.count} позицій попри ${formatPercent(worst.winRate)} прибуткових — перегляньте критерії входу або припиніть цю стратегію.`,
+      detail: `Результат ${formatSignedUsdShort(worst.sumPnl)}, позицій: ${worst.count}, попри ${formatPercent(worst.winRate)} прибуткових — перегляньте критерії входу або припиніть цю стратегію.`,
       priority: score(worst.sumPnl, worst.count) * WEIGHT.strategy,
     });
   }
@@ -143,12 +143,12 @@ function dteInsights(setups: readonly Setup[], minSample: number): Insight[] {
       id: `dte-best-${best.key}`,
       kind: "continue",
       title: `DTE ${best.key} — ваша найкраща зона`,
-      detail: `${best.count} позицій заробили ${formatSignedUsdShort(best.sumPnl)} (${formatPercent(best.winRate)} прибуткових). Варто віддавати перевагу цьому діапазону.`,
+      detail: `Результат ${formatSignedUsdShort(best.sumPnl)}, позицій: ${best.count}, прибуткових ${formatPercent(best.winRate)}. Варто віддавати перевагу цьому діапазону.`,
       priority: score(best.sumPnl, best.count),
     });
   }
   if (worst) {
-    insights.push({ id: `dte-worst-${worst.key}`, kind: "avoid", title: `DTE ${worst.key} не працює`, detail: `${worst.count} позицій у цьому діапазоні втратили ${formatSignedUsdShort(worst.sumPnl)}. Перевіряйте ідею двічі, відкриваючись тут.`, priority: score(worst.sumPnl, worst.count) });
+    insights.push({ id: `dte-worst-${worst.key}`, kind: "avoid", title: `DTE ${worst.key} не працює`, detail: `Результат ${formatSignedUsdShort(worst.sumPnl)}, позицій: ${worst.count}. Перевіряйте ідею двічі, відкриваючись тут.`, priority: score(worst.sumPnl, worst.count) });
   }
   return insights;
 }
@@ -165,12 +165,12 @@ function holdingInsights(setups: readonly Setup[], minSample: number): Insight[]
       id: `holding-worst-${worst.key}`,
       kind: "avoid",
       title: `Утримання ${holdingDaysLabel(worst.key)} шкодить`,
-      detail: `${worst.count} позицій з таким утриманням втратили ${formatSignedUsdShort(worst.sumPnl)} — розгляньте ранніший вихід.`,
+      detail: `Результат ${formatSignedUsdShort(worst.sumPnl)}, позицій: ${worst.count} — розгляньте ранніший вихід.`,
       priority: score(worst.sumPnl, worst.count) * WEIGHT.holdingWorst,
     });
   }
   if (best) {
-    insights.push({ id: `holding-best-${best.key}`, kind: "continue", title: `Утримання ${holdingDaysLabel(best.key)} вам підходить`, detail: `${best.count} позицій з таким утриманням заробили ${formatSignedUsdShort(best.sumPnl)} — ваш природний ритм.`, priority: score(best.sumPnl, best.count) * WEIGHT.holdingBest });
+    insights.push({ id: `holding-best-${best.key}`, kind: "continue", title: `Утримання ${holdingDaysLabel(best.key)} вам підходить`, detail: `Результат ${formatSignedUsdShort(best.sumPnl)}, позицій: ${best.count} — ваш природний ритм.`, priority: score(best.sumPnl, best.count) * WEIGHT.holdingBest });
   }
   return insights;
 }
@@ -187,7 +187,7 @@ function sentimentInsights(setups: readonly Setup[], minSample: number): Insight
       id: `sentiment-${best.key}-vs-${worst.key}`,
       kind: "observe",
       title: `${capitalize(sentimentLabel(best.key))} позиції кращі за ${sentimentLabel(worst.key)}`,
-      detail: `${formatSignedUsdShort(best.sumPnl / best.count)} на позицію у ${sentimentLabel(best.key)} (${best.count}) проти ${formatSignedUsdShort(worst.sumPnl / worst.count)} у ${sentimentLabel(worst.key)} (${worst.count}).`,
+      detail: `${capitalize(sentimentLabel(best.key))}: ${formatSignedUsdShort(best.sumPnl / best.count)} на позицію (позицій: ${best.count}), ${sentimentLabel(worst.key)}: ${formatSignedUsdShort(worst.sumPnl / worst.count)} на позицію (позицій: ${worst.count}).`,
       priority: score(best.sumPnl - worst.sumPnl, best.count) * WEIGHT.sentiment,
     },
   ];
@@ -217,14 +217,14 @@ function creditDebitInsights(setups: readonly Setup[], minSample: number): Insig
         id: "credit-vs-debit",
         kind: worse.pnl < 0 ? "avoid" : "observe",
         title: `Ваші ${better.label} позиції значно кращі за ${worse.label}`,
-        detail: `${formatPercent(better.winRate)} прибуткових серед ${better.label} проти ${formatPercent(worse.winRate)} серед ${worse.label}. ${capitalize(worse.label)} позиції (${worse.count}): ${formatSignedUsdShort(worse.pnl)}.`,
+        detail: `Прибуткових: ${better.label} ${formatPercent(better.winRate)}, ${worse.label} ${formatPercent(worse.winRate)}. ${capitalize(worse.label)}: результат ${formatSignedUsdShort(worse.pnl)}, позицій: ${worse.count}.`,
         priority: score(credit.pnl - debit.pnl, Math.min(credit.count, debit.count)),
       },
     ];
   }
 
   if (debit.count >= minSample && debit.pnl < 0) {
-    return [{ id: "debit-drag", kind: "avoid", title: "Дебетові позиції тягнуть результат вниз", detail: `${debit.count} дебетових позицій втратили ${formatSignedUsdShort(debit.pnl)} — здебільшого хеджі чи коригування?`, priority: score(debit.pnl, debit.count) * WEIGHT.debitDrag }];
+    return [{ id: "debit-drag", kind: "avoid", title: "Дебетові позиції тягнуть результат вниз", detail: `Результат ${formatSignedUsdShort(debit.pnl)}, позицій: ${debit.count} — здебільшого хеджі чи коригування?`, priority: score(debit.pnl, debit.count) * WEIGHT.debitDrag }];
   }
   return [];
 }
