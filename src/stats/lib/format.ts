@@ -82,3 +82,16 @@ export function pnlClass(value: number | null): string {
   }
   return value > 0 ? TONES.good : TONES.bad;
 }
+
+const shortDate = new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "short", timeZone: "UTC" });
+const fullDate = new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+/** "2026-03-13" → "13 бер." */
+export function formatShortDate(date: string): string {
+  return shortDate.format(new Date(`${date}T00:00:00Z`));
+}
+
+/** "2026-03-13" → "13 бер. 2026 р." */
+export function formatDate(date: string): string {
+  return fullDate.format(new Date(`${date}T00:00:00Z`));
+}

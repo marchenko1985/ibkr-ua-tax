@@ -1,8 +1,12 @@
+import { DrawdownEpisodes } from "./cards/drawdown-episodes";
+import { EquityCurve } from "./cards/equity-curve";
 import { Insights } from "./cards/insights";
 import { KpiRow } from "./cards/kpi-row";
 import { KpiRowSecondary } from "./cards/kpi-row-secondary";
 import { OptionsKpiRow } from "./cards/options-kpi-row";
+import { PnlCalendarHeatmap } from "./cards/pnl-calendar-heatmap";
 import { RecentVsBaseline } from "./cards/recent-vs-baseline";
+import { RollingMetrics } from "./cards/rolling-metrics";
 import { SectionHeader } from "./cards/section-header";
 import { TraderProfile } from "./cards/trader-profile";
 import type { Setup } from "./lib/setups";
@@ -23,6 +27,12 @@ export function StatsCards({ setups }: { setups: readonly Setup[] }) {
         <Insights setups={setups} />
       </div>
       <RecentVsBaseline setups={setups} />
+
+      <SectionHeader title="Динаміка" description="Як рухався рахунок: крива капіталу, ковзні показники, епізоди просідання та календар результатів за днями." />
+      <EquityCurve setups={setups} />
+      <RollingMetrics setups={setups} />
+      <DrawdownEpisodes setups={setups} />
+      <PnlCalendarHeatmap setups={setups} />
     </>
   );
 }
