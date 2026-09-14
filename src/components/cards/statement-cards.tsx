@@ -1,4 +1,5 @@
 import type { Statement } from "@/lib/statement";
+import { StatsSection } from "@/stats/stats-section";
 import { DividendsCard } from "./dividends/dividends-card";
 import { EstimatedRatesCard } from "./estimated-rates-card";
 import { F1Card } from "./f1-card";
@@ -18,6 +19,7 @@ export function StatementCards({ statement }: { statement: Statement }) {
       <F1Card statement={statement} />
       <DividendsCard statement={statement} />
       <PreviewCard statement={statement} />
+      <StatsSection statement={statement} />
     </>
   );
 }

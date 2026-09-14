@@ -16,7 +16,9 @@
     // src/components/ui — vendored shadcn components, kept byte-identical to the registry
     // so re-adding them produces clean diffs.
     // files — anonymized IBKR statements used as test fixtures.
-    "includes": ["**", "!src/components/ui", "!files"]
+    // src/stats/lib/strategies — strategy detector vendored from optionslab, kept identical
+    // to the source for re-syncs, guarded by its own spec.
+    "includes": ["**", "!src/components/ui", "!files", "!src/stats/lib/strategies"]
   },
 
   "formatter": {
@@ -127,6 +129,18 @@
           },
           "suspicious": {
             "noMisplacedAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      // Statistics are an optional module: the app renders StatsSection from statement-cards.tsx
+      // and must not depend on anything else in src/stats, so stats can change or be removed freely.
+      "includes": ["src/**", "!src/stats/**", "!src/components/cards/statement-cards.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": { "level": "error", "options": { "patterns": [{ "group": ["@/stats/**", "**/stats/**"], "message": "The app must not depend on src/stats, only statement-cards.tsx renders StatsSection." }] } }
           }
         }
       }

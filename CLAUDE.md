@@ -41,10 +41,18 @@ src/
     cards/statement-cards.tsx  the list of cards shown for a loaded statement
     cards/<card>/              one folder (or file) per card
     ui/                        vendored shadcn components
+  stats/                       optional options statistics, see below
+    stats-section.tsx          the only entry point, rendered last in statement-cards.tsx
+    stats-cards.tsx            list of stat cards, one line per card
+    lib/setups.ts              closed option lots → setups (legs opened together)
+    lib/metrics/               pure metric functions, tested
+    lib/strategies/            strategy detector vendored from optionslab (not linted, own spec)
+    cards/                     one file per card
 ```
 
 - **Cards are modules.** Every card is `({ statement }: { statement: Statement })`, decides itself whether it has something to render, and is added or removed with one line in `statement-cards.tsx`. Cards do not fetch or parse — anything computed from the statement goes to `lib/` with tests.
 - Rows rendered from the statement use stable ids (position in the statement), never array indexes, as React keys.
+- **Stats are an optional module** ported from optionslab `app/stats` (its README documents every metric). The app must not depend on `src/stats` except `StatsSection` in `statement-cards.tsx` — enforced by Biome `noRestrictedImports`; removing stats is deleting the folder and that line. Setups: options only, assigned/exercised options skipped, legs grouped by underlying + open date (no open time in the statement). Cards needing external data (sector, beta, SPY) or open time are not ported.
 
 ## Commands
 
