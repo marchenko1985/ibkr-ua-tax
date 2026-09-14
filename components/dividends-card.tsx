@@ -3,12 +3,15 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { ErrorCard } from "./error-card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
+import { extractDividends, withDividendRates, type Dividend } from "@/lib/dividends";
+import { fetchRates } from "@/lib/rates";
+import { dividendsTotals } from "@/lib/totals";
 
 
 export function DividendsCard({ document }: { document: Document | null | undefined }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<Error | null>(null);
-  const [dividends, setDividends] = useState<ReturnType<typeof extract>>([]);
+  const [dividends, setDividends] = useState<Dividend[]>([]);
   const min_date = useMemo(() => [...dividends]?.sort((a, b) => a.date.localeCompare(b.date))[0]?.date, [dividends]);
   const max_date = useMemo(() => [...dividends]?.sort((a, b) => b.date.localeCompare(a.date))[0]?.date, [dividends]);
 
@@ -18,16 +21,11 @@ export function DividendsCard({ document }: { document: Document | null | undefi
     startTransition(async () => {
       setError(null)
       try {
-        const dividendsWithoutRates = extract(document)
+        const dividendsWithoutRates = extractDividends(document)
         const fromDate = dividendsWithoutRates.sort((a, b) => a.date.localeCompare(b.date))[0]?.date;
         const toDate = dividendsWithoutRates.sort((a, b) => b.date.localeCompare(a.date))[0]?.date;
         const rates = await fetchRates(fromDate, toDate)
-        const dividends = dividendsWithoutRates.map(div => ({
-          ...div,
-          rate: rates[div.date] ?? 0,
-          income_uah: div.income * (rates[div.date] ?? 0),
-        }))
-        setDividends(dividends)
+        setDividends(withDividendRates(dividendsWithoutRates, rates))
       } catch (error) {
         setError(error as Error);
       }
@@ -73,23 +71,8 @@ export function DividendsCard({ document }: { document: Document | null | undefi
   </Card>
 }
 
-function DividendsTable({ dividends }: { dividends: ReturnType<typeof extract> }) {
-  const total = useMemo(() => {
-    const total_income_uah = dividends.reduce((acc, div) => acc + div.income_uah, 0);
-    const dividends_tax = total_income_uah * 0.09; // 9% tax for dividends in Ukraine
-    const military_tax = total_income_uah * 0.05; // 5% military tax for dividends in Ukraine
-    const total_tax = dividends_tax + military_tax;
-    return {
-      amount_total: dividends.reduce((acc, div) => acc + div.amount, 0),
-      us_tax_total: dividends.reduce((acc, div) => acc + div.tax, 0),
-      income_total: dividends.reduce((acc, div) => acc + div.income, 0),
-      total_income_uah,
-      dividends_tax,
-      military_tax,
-      total_tax,
-      net_income_uah: total_income_uah - total_tax,
-    }
-  }, [dividends])
+function DividendsTable({ dividends }: { dividends: Dividend[] }) {
+  const total = useMemo(() => dividendsTotals(dividends), [dividends])
   return <Table>
     <TableHeader>
       <TableRow>
@@ -195,47 +178,4 @@ function DividendsTable({ dividends }: { dividends: ReturnType<typeof extract> }
       </TableRow>
     </TableFooter>
   </Table>
-}
-
-function extract(document: Document) {
-  return Array.from(document.querySelectorAll('div[id^="tblCombDiv_"] table tbody tr')).slice(1, -1).map(tr => ({
-    date: tr.querySelector('td:nth-child(1)')?.textContent ?? "",
-    identifier: tr.querySelector('td:nth-child(2)')?.textContent?.split(' (')?.shift() ?? "",
-    description: tr.querySelector('td:nth-child(2)')?.textContent ?? "",
-    amount: Number(tr.querySelector('td:nth-child(3)')?.textContent?.replace(",", ""))
-  })).map(div => ({
-    ...div,
-    tax: Array.from(document.querySelectorAll('div[id^="tblWithholdingTax_"] table tbody tr')).filter(tr => tr.querySelector('td:nth-child(1)')?.textContent === div.date && tr.querySelector('td:nth-child(2)')?.textContent?.startsWith(div.identifier)).map(tr => Number(tr.querySelector('td:nth-child(3)')?.textContent?.replace(",", ""))).reduce((a, b) => a + b, 0)
-  })).map(div => ({
-    ...div,
-    income: div.amount + div.tax, // note we are using plus here - because tax is negative
-    rate: 0,
-    income_uah: 0,
-  }))
-}
-
-export async function fetchRates(fromDate: string, toDate: string) {
-  if (!fromDate || !toDate) return {};
-
-  const url = new URL("https://proxy.marchenko-alexandr.workers.dev/NBU_Exchange/exchange_site");
-  url.searchParams.set("start", fromDate.replaceAll("-", ""));
-  url.searchParams.set("end", toDate.replaceAll("-", ""));
-  url.searchParams.set("valcode", "usd");
-  url.searchParams.set("json", "true");
-
-  const rates: Record<string, number> = await fetch(url, {
-    headers: {
-      "x-host": "bank.gov.ua",
-      "x-cache-control": "public, max-age=604800",
-    },
-  })
-    .then((r) => r.json())
-    .then((data) =>
-      data
-        .filter(({ cc }: { cc: string }) => cc === "USD")
-        .map(({ exchangedate, rate_per_unit }: { exchangedate: string; rate_per_unit: number }) => ({ date: exchangedate.split(".").reverse().join("-"), rate: rate_per_unit }))
-        .reduce((acc: Record<string, number>, record: { date: string; rate: number }) => ({ ...acc, [record.date]: record.rate }), {} as Record<string, number>),
-    );
-
-  return rates;
 }

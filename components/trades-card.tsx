@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { fetchRates } from "@/lib/fetchRates";
 import { enrich } from "@/lib/enrich";
+import { tradesTotals } from "@/lib/totals";
 import { ErrorCard } from "./error-card";
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
 import { cn } from "@/lib/utils";
@@ -140,22 +141,7 @@ function TradesTable({ trades, taxableTrades }: { trades: ReturnType<typeof extr
   }), [taxableTrades, search, showStocks, showOptions])
 
   // Totals computed only from filtered taxable trades — assigned/exercised options excluded
-  const total = useMemo(() => {
-    const open_uah = filteredTaxableTrades.reduce((acc, trade) => acc + trade.open_uah, 0);
-    const close_uah = filteredTaxableTrades.reduce((acc, trade) => acc + trade.close_uah, 0);
-    const realized_uah = filteredTaxableTrades.reduce((acc, trade) => acc + trade.realized_uah, 0);
-    const personal_income_tax = realized_uah > 0 ? realized_uah * 0.18 : 0;
-    const military_tax = realized_uah > 0 ? realized_uah * 0.05 : 0;
-    const realized_usd = filteredTaxableTrades.reduce((acc, trade) => acc + trade.open_realized, 0);
-    return {
-      open_uah,
-      close_uah,
-      realized_uah,
-      personal_income_tax,
-      military_tax,
-      realized_usd,
-    }
-  }, [filteredTaxableTrades])
+  const total = useMemo(() => tradesTotals(filteredTaxableTrades), [filteredTaxableTrades])
 
   return <>
     <FieldGroup className="flex-row mb-4">

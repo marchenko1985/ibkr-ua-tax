@@ -1,12 +1,20 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { extract } from "./extract";
-import { readFileSync } from "fs";
-import { JSDOM } from "jsdom";
+import { expectLotsAddUpToCloseRows, loadFixture, parseHtml } from "./fixture";
 
-function loadFixture(filename: string): Document {
-  const html = readFileSync(`files/${filename}`, "utf-8");
-  return new JSDOM(html).window.document;
+type Trade = ReturnType<typeof extract>[number];
+
+function find(trades: Trade[], symbol: string): Trade {
+  const trade = trades.find((t) => t.symbol === symbol);
+  if (!trade) throw new Error(`trade ${symbol} not found`);
+  return trade;
 }
+
+describe("extract empty document", () => {
+  it("returns no trades", () => {
+    expect(extract(parseHtml("<html><body></body></html>"))).toEqual([]);
+  });
+});
 
 // ─── amd.htm ─────────────────────────────────────────────────────
 // 14 Closed Lots: 2 stock (AMD sold after assignment) + 12 options
@@ -14,10 +22,10 @@ function loadFixture(filename: string): Document {
 // 0 expired options
 
 describe("extract amd.htm", () => {
-  let trades: ReturnType<typeof extract>;
+  let trades: Trade[];
 
   beforeAll(() => {
-    trades = extract(loadFixture("amd.htm"));
+    trades = extract(loadFixture("files/amd.htm"));
   });
 
   it("extracts 14 closed lot rows", () => {
@@ -30,15 +38,52 @@ describe("extract amd.htm", () => {
     }
   });
 
+  it("lots add up to closing rows", () => {
+    expectLotsAddUpToCloseRows(trades);
+  });
+
+  it("all fields of a closed option lot", () => {
+    const trade = find(trades, "AMD 13MAR26 190 P");
+    expect(trade).toMatchObject({
+      symbol: "AMD 13MAR26 190 P",
+      exchange: "PSE",
+      open_date: "2026-02-06",
+      open_quantity: 1,
+      open_tprice: 7.1498875,
+      open_basis: 714.99,
+      open_realized: -696.44,
+      open_code: "ST",
+      open_codes: ["ST"],
+      close_datetime: "2026-03-13, 11:41:16",
+      close_date: "2026-03-13",
+      close_year: 2026,
+      close_quantity: -1,
+      close_tprice: 0.2,
+      close_proceeds: 20,
+      close_commfee: -1.45,
+      close_basis: -714.99,
+      close_realized: -696.44,
+      close_code: "C",
+      close_codes: ["C"],
+      is_long: true,
+      is_short: false,
+      is_option: true,
+      is_assignment: false,
+      is_exercise: false,
+    });
+  });
+
+  it("thousands separators are removed from numbers", () => {
+    const lot = trades.find((t) => t.symbol === "AMD" && t.open_quantity === 92);
+    expect(lot?.open_basis).toBe(17128.55);
+    expect(lot?.close_proceeds).toBe(18378.84);
+  });
+
   describe("AMD 13MAR26 195 P (assigned short put)", () => {
-    let trade: ReturnType<typeof extract>[number];
+    let trade: Trade;
 
     beforeAll(() => {
-      trade = trades.find((t) => t.symbol === "AMD 13MAR26 195 P")!;
-    });
-
-    it("found", () => {
-      expect(trade).toBeDefined();
+      trade = find(trades, "AMD 13MAR26 195 P");
     });
 
     it("flags", () => {
@@ -59,7 +104,7 @@ describe("extract amd.htm", () => {
   });
 
   describe("AMD stock rows (sold after assignment)", () => {
-    let stockTrades: ReturnType<typeof extract>;
+    let stockTrades: Trade[];
 
     beforeAll(() => {
       stockTrades = trades.filter((t) => t.symbol === "AMD");
@@ -81,23 +126,9 @@ describe("extract amd.htm", () => {
       expect(stockTrades[0].open_realized).toBe(108.38);
       expect(stockTrades[1].open_realized).toBe(1250.37);
     });
-  });
 
-  describe("AMD 13MAR26 190 P (closed long put, not assigned)", () => {
-    let trade: ReturnType<typeof extract>[number];
-
-    beforeAll(() => {
-      trade = trades.find((t) => t.symbol === "AMD 13MAR26 190 P")!;
-    });
-
-    it("flags", () => {
-      expect(trade.is_option).toBe(true);
-      expect(trade.is_long).toBe(true);
-      expect(trade.is_assignment).toBe(false);
-    });
-
-    it("losing trade", () => {
-      expect(trade.open_realized).toBe(-696.44);
+    it("partial execution code", () => {
+      expect(stockTrades[0].close_codes).toEqual(["C", "P"]);
     });
   });
 
@@ -113,18 +144,22 @@ describe("extract amd.htm", () => {
 // 20 QQQ stock rows with code A;C;O — these are taxable (not options)
 
 describe("extract qqq.htm", () => {
-  let trades: ReturnType<typeof extract>;
+  let trades: Trade[];
 
   beforeAll(() => {
-    trades = extract(loadFixture("qqq.htm"));
+    trades = extract(loadFixture("files/qqq.htm"));
   });
 
   it("extracts 29 closed lot rows", () => {
     expect(trades).toHaveLength(29);
   });
 
+  it("lots add up to closing rows", () => {
+    expectLotsAddUpToCloseRows(trades);
+  });
+
   describe("QQQ stock rows (20 lots from assignment + 1 buyback)", () => {
-    let qqqStocks: ReturnType<typeof extract>;
+    let qqqStocks: Trade[];
 
     beforeAll(() => {
       qqqStocks = trades.filter((t) => t.symbol === "QQQ");
@@ -142,104 +177,97 @@ describe("extract qqq.htm", () => {
     });
 
     it("20 long + 1 short (buyback)", () => {
-      const longs = qqqStocks.filter((t) => t.is_long);
-      const shorts = qqqStocks.filter((t) => t.is_short);
-      expect(longs).toHaveLength(20);
-      expect(shorts).toHaveLength(1);
+      expect(qqqStocks.filter((t) => t.is_long)).toHaveLength(20);
+      expect(qqqStocks.filter((t) => t.is_short)).toHaveLength(1);
     });
 
-    it("20 assignment-delivered lots have code A;C;O", () => {
+    it("20 assignment-delivered lots share one closing row", () => {
       const delivered = qqqStocks.filter((t) => t.is_long);
       for (const t of delivered) {
-        expect(t.close_codes).toContain("A");
-        expect(t.close_codes).toContain("C");
-        expect(t.close_codes).toContain("O");
+        expect(t.close_codes).toEqual(["A", "C", "O"]);
+        expect(t.close_datetime).toBe("2026-03-02, 16:20:00");
+        expect(t.close_quantity).toBe(-100);
+        expect(t.close_proceeds).toBe(60700);
+        expect(t.close_basis).toBe(-19210.86);
+        expect(t.close_realized).toBe(11186.28);
       }
+    });
+
+    it("long term lots keep their own open dates", () => {
+      const openDates = qqqStocks.filter((t) => t.is_long).map((t) => t.open_date);
+      expect(new Set(openDates).size).toBe(20);
+      expect(openDates).toContain("2020-05-26");
+      expect(openDates).toContain("2024-12-16");
     });
 
     it("buyback lot (short) has code C", () => {
-      const buyback = qqqStocks.find((t) => t.is_short)!;
-      expect(buyback.close_codes).toEqual(["C"]);
-      expect(buyback.open_realized).toBe(455.28);
+      const buyback = qqqStocks.find((t) => t.is_short);
+      expect(buyback).toMatchObject({
+        open_date: "2026-03-02",
+        open_quantity: -50,
+        open_basis: -30397.14,
+        open_realized: 455.28,
+        close_date: "2026-03-03",
+        close_codes: ["C"],
+      });
     });
 
     it("first lot opened 2020-05-26 with basis 234.86", () => {
-      const oldest = qqqStocks.find((t) => t.open_date === "2020-05-26")!;
-      expect(oldest).toBeDefined();
-      expect(oldest.open_basis).toBe(234.86);
-      expect(oldest.open_realized).toBe(373.08);
-    });
-
-    it("all 20 assignment lots have count=1 (each in own detail row)", () => {
-      const delivered = qqqStocks.filter((t) => t.is_long);
-      for (const t of delivered) {
-        expect(t.count).toBe(1);
-      }
+      const oldest = qqqStocks.find((t) => t.open_date === "2020-05-26");
+      expect(oldest?.open_basis).toBe(234.86);
+      expect(oldest?.open_realized).toBe(373.08);
+      expect(oldest?.open_codes).toEqual(["LT"]);
     });
   });
 
   describe("QQQ 02MAR26 607 C (assigned short call)", () => {
-    let trade: ReturnType<typeof extract>[number];
-
-    beforeAll(() => {
-      trade = trades.find((t) => t.symbol === "QQQ 02MAR26 607 C")!;
-    });
-
-    it("found", () => {
-      expect(trade).toBeDefined();
-    });
-
-    it("flags", () => {
+    it("flags, codes and zero realized", () => {
+      const trade = find(trades, "QQQ 02MAR26 607 C");
       expect(trade.is_option).toBe(true);
       expect(trade.is_short).toBe(true);
       expect(trade.is_assignment).toBe(true);
       expect(trade.is_exercise).toBe(false);
-    });
-
-    it("codes", () => {
       expect(trade.close_codes).toEqual(["A", "C"]);
-    });
-
-    it("realized = 0", () => {
       expect(trade.open_realized).toBe(0);
     });
   });
 
   describe("expired options (C;Ep code)", () => {
     it("QQQ 02MAR26 612 C — long expired (loss)", () => {
-      const t = trades.find((t) => t.symbol === "QQQ 02MAR26 612 C")!;
+      const t = find(trades, "QQQ 02MAR26 612 C");
       expect(t.is_long).toBe(true);
       expect(t.open_realized).toBe(-11.7);
       expect(t.is_assignment).toBe(false);
-      expect(t.close_codes).toContain("Ep");
+      expect(t.close_codes).toEqual(["C", "Ep"]);
     });
 
     it("SPY 02MAR26 686 C — short expired (profit)", () => {
-      const t = trades.find((t) => t.symbol === "SPY 02MAR26 686 C")!;
+      const t = find(trades, "SPY 02MAR26 686 C");
       expect(t.is_short).toBe(true);
+      expect(t.open_basis).toBe(-61.3);
       expect(t.open_realized).toBe(61.3);
       expect(t.is_assignment).toBe(false);
-      expect(t.close_codes).toContain("Ep");
+      expect(t.close_codes).toEqual(["C", "Ep"]);
     });
 
     it("SPY 02MAR26 691 C — long expired (loss)", () => {
-      const t = trades.find((t) => t.symbol === "SPY 02MAR26 691 C")!;
+      const t = find(trades, "SPY 02MAR26 691 C");
       expect(t.is_long).toBe(true);
       expect(t.open_realized).toBe(-6.7);
-      expect(t.close_codes).toContain("Ep");
+      expect(t.close_codes).toEqual(["C", "Ep"]);
     });
   });
 
   describe("AVAV spread (normal closed options)", () => {
     it("AVAV 235 P — long, not assigned, not expired", () => {
-      const t = trades.find((t) => t.symbol === "AVAV 06MAR26 235 P")!;
+      const t = find(trades, "AVAV 06MAR26 235 P");
       expect(t.is_long).toBe(true);
       expect(t.is_assignment).toBe(false);
       expect(t.open_realized).toBe(-537.3);
     });
 
     it("AVAV 240 P — short, not assigned", () => {
-      const t = trades.find((t) => t.symbol === "AVAV 06MAR26 240 P")!;
+      const t = find(trades, "AVAV 06MAR26 240 P");
       expect(t.is_short).toBe(true);
       expect(t.is_assignment).toBe(false);
       expect(t.open_realized).toBe(621.7);
