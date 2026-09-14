@@ -1,4 +1,4 @@
-import type { Setup } from "../setups";
+import { daysBetween, type Setup } from "../setups";
 import { summarize } from "./summary";
 
 // Ported from optionslab app/stats/lib/metrics/timeseries.ts
@@ -97,8 +97,6 @@ export interface DrawdownEpisode {
   open: boolean;
 }
 
-const DAY_MS = 86_400_000;
-
 /**
  * Every peak → trough → recovery cycle of the equity curve, deepest first.
  * An episode still below its peak at the end of the period is open.
@@ -150,8 +148,4 @@ export function drawdownEpisodes(setups: readonly Setup[]): DrawdownEpisode[] {
   }
 
   return episodes.sort((a, b) => b.depth - a.depth);
-}
-
-function daysBetween(from: string, to: string) {
-  return Math.max(0, Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS));
 }

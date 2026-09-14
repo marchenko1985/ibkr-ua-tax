@@ -1,4 +1,5 @@
 import type { Setup } from "../setups";
+import { median, sum } from "./math";
 
 // Ported from optionslab app/stats/lib/metrics/options.ts
 
@@ -45,18 +46,4 @@ export function singleMultiExpiryStats(setups: readonly Setup[]): SingleMultiExp
     multiPnl: sum(multi.map((s) => s.realizedPnl)),
     multiWinRate: multi.length > 0 ? multi.filter((s) => s.isWinner).length / multi.length : null,
   };
-}
-
-function sum(values: readonly number[]) {
-  return values.reduce((acc, value) => acc + value, 0);
-}
-
-function median(values: readonly number[]): number | null {
-  if (values.length === 0) {
-    return null;
-  }
-  const sorted = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  const upper = sorted[middle] ?? 0;
-  return sorted.length % 2 === 0 ? ((sorted[middle - 1] ?? 0) + upper) / 2 : upper;
 }

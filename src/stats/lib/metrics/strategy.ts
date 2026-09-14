@@ -1,5 +1,6 @@
 import type { Setup } from "../setups";
 import { perStrategyStats } from "./grouping";
+import { sum } from "./math";
 
 // Ported from optionslab app/stats/lib/metrics/options.ts
 
@@ -75,8 +76,4 @@ export function strategyFrontierPoints(setups: readonly Setup[], minCount: numbe
 /** payoff ratio at which a strategy with this win rate makes zero: winRate·payoff = 1 − winRate */
 export function breakEvenPayoff(winRate: number): number {
   return (1 - winRate) / winRate;
-}
-
-function sum(values: readonly number[]) {
-  return values.reduce((acc, value) => acc + value, 0);
 }

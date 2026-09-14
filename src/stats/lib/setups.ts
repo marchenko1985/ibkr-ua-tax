@@ -241,7 +241,8 @@ function closedAtOf(item: Trade) {
   return item.close_datetime.replace(", ", "T");
 }
 
-function daysBetween(from: string, to: string) {
+/** whole calendar days from one YYYY-MM-DD to another */
+export function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
 }
 

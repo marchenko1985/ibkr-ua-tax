@@ -1,4 +1,5 @@
 import type { Setup } from "../setups";
+import { sum } from "./math";
 
 // Ported from optionslab app/stats/lib/metrics/summary.ts
 
@@ -69,10 +70,6 @@ function profitFactor(grossWin: number, grossLoss: number) {
     return grossWin / grossLoss;
   }
   return grossWin > 0 ? Number.POSITIVE_INFINITY : null;
-}
-
-function sum(values: readonly number[]) {
-  return values.reduce((acc, value) => acc + value, 0);
 }
 
 /**
